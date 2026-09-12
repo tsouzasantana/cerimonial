@@ -9,7 +9,7 @@
 
     <div>
         <x-input-label for="document" value="CPF/CNPJ" />
-        <x-text-input id="document" name="document" type="text" class="mt-1 block w-full" :value="old('document', $client?->document)" />
+        <x-text-input id="document" name="document" type="text" data-mask="document" inputmode="numeric" class="mt-1 block w-full" :value="old('document', $client?->document)" />
         <x-input-error :messages="$errors->get('document')" class="mt-2" />
     </div>
 
@@ -46,6 +46,14 @@
 
 <h3 class="mt-6 text-sm font-semibold text-gray-700 uppercase">Endereço</h3>
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-2">
+    <div>
+        <x-input-label for="address_zipcode" value="CEP" />
+        <x-text-input id="address_zipcode" name="address_zipcode" type="text" data-mask="cep" data-cep-autofill inputmode="numeric"
+                placeholder="00000-000" class="mt-1 block w-full" :value="old('address_zipcode', $client?->address_zipcode)" />
+        <p class="mt-1 text-xs text-gray-400 js-cep-status"></p>
+        <x-input-error :messages="$errors->get('address_zipcode')" class="mt-2" />
+    </div>
+
     <div class="sm:col-span-2">
         <x-input-label for="address_street" value="Rua" />
         <x-text-input id="address_street" name="address_street" type="text" class="mt-1 block w-full" :value="old('address_street', $client?->address_street)" />
@@ -80,12 +88,6 @@
         <x-input-label for="address_state" value="UF" />
         <x-text-input id="address_state" name="address_state" type="text" maxlength="2" class="mt-1 block w-full" :value="old('address_state', $client?->address_state)" />
         <x-input-error :messages="$errors->get('address_state')" class="mt-2" />
-    </div>
-
-    <div>
-        <x-input-label for="address_zipcode" value="CEP" />
-        <x-text-input id="address_zipcode" name="address_zipcode" type="text" class="mt-1 block w-full" :value="old('address_zipcode', $client?->address_zipcode)" />
-        <x-input-error :messages="$errors->get('address_zipcode')" class="mt-2" />
     </div>
 </div>
 

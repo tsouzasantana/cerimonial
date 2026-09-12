@@ -23,7 +23,7 @@ class ClientManagementTest extends TestCase
         $response = $this->actingAs($user)->post('/clients', [
             'name' => 'Maria Silva',
             'email' => 'maria@example.com',
-            'document' => '123.456.789-00',
+            'document' => '529.982.247-25',
         ]);
 
         $client = Client::first();

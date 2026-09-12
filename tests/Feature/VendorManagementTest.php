@@ -21,7 +21,7 @@ class VendorManagementTest extends TestCase
 
         $this->actingAs($user)->post(route('vendors.store', $contract), [
             'name' => 'Buffet Sabor',
-            'document' => '12.345.678/0001-99',
+            'document' => '11.222.333/0001-81',
             'vendor_service_type_id' => $type->id,
             'status' => Vendor::STATUS_A_PRESTAR,
             'payment_status' => Vendor::PAYMENT_NAO_PAGO,

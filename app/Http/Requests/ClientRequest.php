@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\CpfOrCnpj;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ClientRequest extends FormRequest
@@ -15,7 +16,7 @@ class ClientRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'document' => ['nullable', 'string', 'max:20'],
+            'document' => ['nullable', 'string', 'max:20', new CpfOrCnpj],
             'rg' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],

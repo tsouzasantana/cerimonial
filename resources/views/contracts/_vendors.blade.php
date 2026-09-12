@@ -104,7 +104,7 @@
                         </div>
                         <div>
                             <x-input-label value="CPF/CNPJ" />
-                            <x-text-input name="document" type="text" class="mt-1 block w-full" value="{{ $vendor->document }}" />
+                            <x-text-input name="document" type="text" data-mask="document" inputmode="numeric" class="mt-1 block w-full" value="{{ $vendor->document }}" />
                         </div>
                         <div>
                             <x-input-label value="Tipo de serviço" />
@@ -163,7 +163,7 @@
         </div>
         <div>
             <x-input-label value="CPF/CNPJ" />
-            <x-text-input name="document" type="text" class="mt-1 block w-full" />
+            <x-text-input name="document" type="text" data-mask="document" inputmode="numeric" class="mt-1 block w-full" />
         </div>
         <div>
             <x-input-label value="Tipo de serviço" />
