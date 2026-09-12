@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('contracts/{contract}/items/{item}', [ContractItemController::class, 'destroy'])->name('contract-items.destroy');
 
     Route::post('contracts/{contract}/installments', [InstallmentController::class, 'store'])->name('installments.store');
+    Route::post('contracts/{contract}/installments/batch', [InstallmentController::class, 'storeBatch'])->name('installments.store-batch');
     Route::put('contracts/{contract}/installments/{installment}', [InstallmentController::class, 'update'])->name('installments.update');
     Route::delete('contracts/{contract}/installments/{installment}', [InstallmentController::class, 'destroy'])->name('installments.destroy');
     Route::post('contracts/{contract}/installments/{installment}/restore', [InstallmentController::class, 'restore'])->name('installments.restore');

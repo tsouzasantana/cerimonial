@@ -25,6 +25,29 @@
                 </div>
                 <h4 class="text-sm font-medium text-gray-700 mb-2">Receita recebida por mês</h4>
                 @include('reports._bar-chart', ['series' => $financeiro['receita_por_mes'], 'isCurrency' => true])
+
+                <h4 class="text-sm font-medium text-gray-700 mt-6 mb-2">Fluxo de caixa projetado (próximos 6 meses)</h4>
+                <p class="text-xs text-gray-500 mb-2">Soma das parcelas pendentes e atrasadas por mês de vencimento.</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="py-2 pr-3">Mês</th>
+                                <th class="py-2 pr-3">Previsto no mês</th>
+                                <th class="py-2 pr-3">Acumulado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach ($financeiro['fluxo_projetado'] as $item)
+                                <tr>
+                                    <td class="py-2 pr-3 text-gray-900">{{ $item['label'] }}</td>
+                                    <td class="py-2 pr-3 text-gray-700">R$ {{ number_format($item['total'], 2, ',', '.') }}</td>
+                                    <td class="py-2 pr-3 text-gray-700 font-medium">R$ {{ number_format($item['acumulado'], 2, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
             {{-- Contratos --}}

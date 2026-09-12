@@ -218,6 +218,33 @@
                         </div>
                         <x-secondary-button type="submit">Adicionar parcela</x-secondary-button>
                     </form>
+
+                    <div class="mt-4 pt-4 border-t" x-data="{ open: false }">
+                        <button type="button" class="text-sm text-indigo-600 hover:text-indigo-800" x-on:click="open = ! open">
+                            Gerar parcelas em lote
+                        </button>
+                        <form x-show="open" x-cloak method="POST" action="{{ route('installments.store-batch', $contract) }}"
+                                class="mt-3 flex flex-wrap items-end gap-3" onsubmit="return confirm('Gerar as parcelas informadas?');">
+                            @csrf
+                            <div>
+                                <x-input-label for="total_amount" value="Valor total (R$)" />
+                                <x-text-input id="total_amount" name="total_amount" type="number" step="0.01" min="0.01" class="mt-1 block w-32" required />
+                            </div>
+                            <div>
+                                <x-input-label for="installment_count" value="Qtde de parcelas" />
+                                <x-text-input id="installment_count" name="installment_count" type="number" min="1" max="60" class="mt-1 block w-28" required />
+                            </div>
+                            <div>
+                                <x-input-label for="first_due_date" value="1º vencimento" />
+                                <x-text-input id="first_due_date" name="first_due_date" type="date" class="mt-1 block w-40" required />
+                            </div>
+                            <div>
+                                <x-input-label for="interval_months" value="Intervalo (meses)" />
+                                <x-text-input id="interval_months" name="interval_months" type="number" min="1" max="12" value="1" class="mt-1 block w-24" required />
+                            </div>
+                            <x-secondary-button type="submit">Gerar parcelas</x-secondary-button>
+                        </form>
+                    </div>
                 </div>
             </div>
 

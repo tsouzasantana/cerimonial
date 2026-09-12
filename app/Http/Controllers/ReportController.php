@@ -28,6 +28,13 @@ class ReportController extends Controller
             ->all();
     }
 
+    private function nextMonths(int $count): array
+    {
+        return collect(range(0, $count - 1))
+            ->map(fn ($i) => now()->addMonths($i)->startOfMonth())
+            ->all();
+    }
+
     private function financeiro(): array
     {
         $recebido = Installment::where('status', Installment::STATUS_PAGO)->sum('amount');
@@ -50,12 +57,29 @@ class ReportController extends Controller
             ];
         });
 
+        $acumulado = 0.0;
+        $fluxoProjetado = collect($this->nextMonths(6))->map(function (Carbon $month) use (&$acumulado) {
+            $total = (float) Installment::whereIn('status', [Installment::STATUS_PENDENTE, Installment::STATUS_ATRASADO])
+                ->whereYear('due_date', $month->year)
+                ->whereMonth('due_date', $month->month)
+                ->sum('amount');
+
+            $acumulado += $total;
+
+            return [
+                'label' => $month->translatedFormat('M/y'),
+                'total' => $total,
+                'acumulado' => $acumulado,
+            ];
+        });
+
         return [
             'recebido' => (float) $recebido,
             'a_receber' => (float) $aReceber,
             'atrasadas_count' => $atrasadas->count(),
             'atrasadas_total' => (float) $atrasadas->sum('amount'),
             'receita_por_mes' => $receitaPorMes,
+            'fluxo_projetado' => $fluxoProjetado,
         ];
     }
 

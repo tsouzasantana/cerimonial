@@ -47,4 +47,31 @@ class ReportDashboardTest extends TestCase
         $response->assertSee('Clientes');
         $response->assertSee('R$ 500,00');
     }
+
+    public function test_dashboard_shows_projected_cash_flow_for_pending_installments(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create();
+        $contract = Contract::factory()->create(['client_id' => $client->id]);
+
+        Installment::factory()->create([
+            'contract_id' => $contract->id,
+            'status' => Installment::STATUS_PENDENTE,
+            'amount' => 300,
+            'due_date' => now()->startOfMonth(),
+        ]);
+
+        Installment::factory()->create([
+            'contract_id' => $contract->id,
+            'status' => Installment::STATUS_ATRASADO,
+            'amount' => 200,
+            'due_date' => now()->subDay(),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('reports.index'));
+
+        $response->assertOk();
+        $response->assertSee('Fluxo de caixa projetado');
+        $response->assertSee('R$ 500,00');
+    }
 }
