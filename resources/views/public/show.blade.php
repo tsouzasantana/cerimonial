@@ -39,6 +39,7 @@
             <div x-show="tab === 'resumo'" class="space-y-6">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Serviços contratados</h3>
+                    <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -59,6 +60,7 @@
                             @endforelse
                         </tbody>
                     </table>
+                    </div>
                     <div class="mt-4 pt-4 border-t flex justify-end text-sm">
                         <dl class="space-y-1 text-right">
                             <div><dt class="inline text-gray-500">Subtotal:</dt> <dd class="inline text-gray-900 ml-2">R$ {{ number_format($contract->subtotal, 2, ',', '.') }}</dd></div>
@@ -70,6 +72,7 @@
 
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Parcelas de pagamento</h3>
+                    <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -92,6 +95,7 @@
                             @endforelse
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 

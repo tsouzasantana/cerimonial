@@ -15,6 +15,7 @@
                     Tipos de ocorrência são usados no histórico de cada contrato (ex: "Orçamento enviado", "Contrato assinado", "Evento realizado").
                     Você pode associar um status de contrato que será aplicado automaticamente ao registrar uma ocorrência deste tipo.
                 </p>
+                <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead>
                         <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -44,6 +45,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
 
                 <div class="mt-4">
                     {{ $types->links() }}

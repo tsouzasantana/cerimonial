@@ -78,36 +78,38 @@
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Serviços contratados</h3>
 
-                    <table class="min-w-full divide-y divide-gray-200 mb-4">
-                        <thead>
-                            <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <th class="py-2 pr-3">Serviço</th>
-                                <th class="py-2 pr-3">Qtde</th>
-                                <th class="py-2 pr-3">Valor unitário</th>
-                                <th class="py-2 pr-3">Total</th>
-                                <th class="py-2 pr-3"></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @forelse ($contract->items as $item)
-                                <tr>
-                                    <td class="py-2 pr-3">{{ $item->service->name }}</td>
-                                    <td class="py-2 pr-3">{{ $item->quantity }}</td>
-                                    <td class="py-2 pr-3">R$ {{ number_format($item->unit_price, 2, ',', '.') }}</td>
-                                    <td class="py-2 pr-3">R$ {{ number_format($item->total_price, 2, ',', '.') }}</td>
-                                    <td class="py-2 pr-3 text-right">
-                                        <form method="POST" action="{{ route('contract-items.destroy', [$contract, $item]) }}" onsubmit="return confirm('Remover este item?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Remover</button>
-                                        </form>
-                                    </td>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 mb-4">
+                            <thead>
+                                <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th class="py-2 pr-3">Serviço</th>
+                                    <th class="py-2 pr-3">Qtde</th>
+                                    <th class="py-2 pr-3">Valor unitário</th>
+                                    <th class="py-2 pr-3">Total</th>
+                                    <th class="py-2 pr-3"></th>
                                 </tr>
-                            @empty
-                                <tr><td colspan="5" class="py-3 text-center text-gray-500">Nenhum serviço adicionado.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @forelse ($contract->items as $item)
+                                    <tr>
+                                        <td class="py-2 pr-3">{{ $item->service->name }}</td>
+                                        <td class="py-2 pr-3">{{ $item->quantity }}</td>
+                                        <td class="py-2 pr-3">R$ {{ number_format($item->unit_price, 2, ',', '.') }}</td>
+                                        <td class="py-2 pr-3">R$ {{ number_format($item->total_price, 2, ',', '.') }}</td>
+                                        <td class="py-2 pr-3 text-right">
+                                            <form method="POST" action="{{ route('contract-items.destroy', [$contract, $item]) }}" onsubmit="return confirm('Remover este item?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Remover</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="py-3 text-center text-gray-500">Nenhum serviço adicionado.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
 
                     <form method="POST" action="{{ route('contract-items.store', $contract) }}" class="flex flex-wrap items-end gap-3">
                         @csrf
@@ -139,6 +141,7 @@
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Parcelas de pagamento</h3>
 
+                    <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 mb-4">
                         <thead>
                             <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -193,6 +196,7 @@
                             @endforelse
                         </tbody>
                     </table>
+                    </div>
 
                     <form method="POST" action="{{ route('installments.store', $contract) }}" class="flex flex-wrap items-end gap-3">
                         @csrf

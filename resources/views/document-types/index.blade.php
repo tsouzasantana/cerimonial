@@ -15,6 +15,7 @@
                     Use os tipos para organizar documentos de clientes e contratos — contratos assinados,
                     documentos pessoais, comprovantes, inspirações, contratos de outros fornecedores, etc.
                 </p>
+                <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead>
                         <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -44,6 +45,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
 
                 <div class="mt-4">
                     {{ $types->links() }}

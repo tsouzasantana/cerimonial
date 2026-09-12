@@ -16,6 +16,7 @@
                     cerimonial, com o prazo calculado a partir da data do evento. Alterar aqui não muda
                     contratos já criados.
                 </p>
+                <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead>
                         <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -53,6 +54,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
 
                 <div class="mt-4">
                     {{ $templates->links() }}
