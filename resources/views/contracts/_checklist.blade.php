@@ -83,6 +83,7 @@
                 <th class="py-2 pr-3"><a href="{{ $sortUrl('due_date') }}" class="hover:text-gray-700">Prazo {{ $sortIndicator('due_date') }}</a></th>
                 <th class="py-2 pr-3"><a href="{{ $sortUrl('status') }}" class="hover:text-gray-700">Status {{ $sortIndicator('status') }}</a></th>
                 <th class="py-2 pr-3">Observações</th>
+                <th class="py-2 pr-3">Última atualização</th>
                 <th class="py-2 pr-3 text-right">Ações</th>
             </tr>
         </thead>
@@ -103,6 +104,13 @@
                         </select>
                     </td>
                     <td class="py-2 pr-3 text-gray-600 max-w-xs truncate" title="{{ $task->notes }}">{{ $task->notes ?: '—' }}</td>
+                    <td class="py-2 pr-3 text-gray-500 text-xs whitespace-nowrap">
+                        @if ($task->updatedByLabel())
+                            {{ $task->updatedByLabel() }}<br>{{ $task->updated_at->format('d/m/Y H:i') }}
+                        @else
+                            —
+                        @endif
+                    </td>
                     <td class="py-2 pr-3 text-right whitespace-nowrap">
                         <button type="button" class="text-gray-600 hover:text-gray-900 text-sm" x-data x-on:click="$dispatch('open-modal', 'edit-task-{{ $task->id }}')">Editar</button>
                         <form method="POST" action="{{ $destroyUrl($task) }}" class="inline" onsubmit="return confirm('Inativar esta tarefa?');">
@@ -113,7 +121,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="5" class="py-3 text-center text-gray-500">Nenhuma tarefa encontrada.</td></tr>
+                <tr><td colspan="6" class="py-3 text-center text-gray-500">Nenhuma tarefa encontrada.</td></tr>
             @endforelse
         </tbody>
     </table>

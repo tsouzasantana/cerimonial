@@ -23,6 +23,7 @@
                         </a>
                     @endif
                     <span class="text-xs text-gray-500">({{ $document->documentType->name }})</span>
+                    <span class="text-xs text-gray-400">&middot; enviado por {{ $document->uploaded_by_type === 'client' ? 'cliente' : ($document->uploader->name ?? 'admin') }}</span>
                 </div>
                 @unless ($isPublic)
                     <div class="flex items-center gap-3 shrink-0">

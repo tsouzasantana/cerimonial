@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ContractRequest;
 use App\Mail\ContractPdfMail;
+use App\Models\AuditLog;
 use App\Models\Client;
 use App\Models\Contract;
 use App\Models\DocumentType;
@@ -82,6 +83,10 @@ class ContractController extends Controller
         $documentTypes = DocumentType::orderBy('name')->get();
         $vendorServiceTypes = VendorServiceType::orderBy('name')->get();
         $checklistTasks = ChecklistQuery::forContract($contract, $request);
+        $activityLogs = AuditLog::where('contract_id', $contract->id)
+            ->orderByDesc('created_at')
+            ->paginate(20, ['*'], 'activity_page')
+            ->withQueryString();
 
         return view('contracts.show', compact(
             'contract',
@@ -92,6 +97,7 @@ class ContractController extends Controller
             'documentTypes',
             'vendorServiceTypes',
             'checklistTasks',
+            'activityLogs',
         ));
     }
 

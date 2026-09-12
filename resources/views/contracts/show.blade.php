@@ -44,6 +44,9 @@
                 @if ($contract->notes)
                     <p class="mt-4 text-sm text-gray-600"><strong>Observações:</strong> {{ $contract->notes }}</p>
                 @endif
+                @if ($contract->updatedByLabel())
+                    <p class="mt-2 text-xs text-gray-400">Última atualização: {{ $contract->updatedByLabel() }} em {{ $contract->updated_at->format('d/m/Y H:i') }}</p>
+                @endif
 
                 <div class="mt-4 pt-4 border-t flex flex-wrap items-center justify-between gap-3">
                     <div class="text-sm">
@@ -60,7 +63,7 @@
 
             <div class="border-b border-gray-200">
                 <nav class="-mb-px flex flex-wrap gap-6">
-                    @foreach (['resumo' => 'Serviços e pagamentos', 'documentos' => 'Documentos', 'ocorrencias' => 'Ocorrências', 'checklist' => 'Checklist', 'fornecedores' => 'Fornecedores'] as $key => $label)
+                    @foreach (['resumo' => 'Serviços e pagamentos', 'documentos' => 'Documentos', 'ocorrencias' => 'Ocorrências', 'checklist' => 'Checklist', 'fornecedores' => 'Fornecedores', 'atividades' => 'Atividades'] as $key => $label)
                         <button type="button" @click="tab = '{{ $key }}'"
                                 :class="tab === '{{ $key }}' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
@@ -301,6 +304,12 @@
             <div x-show="tab === 'fornecedores'" class="bg-white shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Fornecedores</h3>
                 @include('contracts._vendors', ['isPublic' => false])
+            </div>
+
+            {{-- Atividades --}}
+            <div x-show="tab === 'atividades'" class="bg-white shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Histórico de atividades</h3>
+                @include('contracts._activity-log', ['logs' => $activityLogs])
             </div>
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">

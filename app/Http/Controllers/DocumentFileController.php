@@ -42,6 +42,7 @@ class DocumentFileController extends Controller
             'contract_id' => $vendor?->contract_id ?? $data['contract_id'] ?? null,
             'vendor_id' => $vendor?->id,
             'uploaded_by' => $request->user()->id,
+            'uploaded_by_type' => 'admin',
             'document_type_id' => $data['document_type_id'],
             'title' => $data['title'],
         ];

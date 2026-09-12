@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Installment extends Model
 {
-    use HasFactory, SoftDeletes;
+    use Auditable, HasFactory, SoftDeletes;
 
     public const STATUS_PENDENTE = 'pendente';
 
@@ -71,5 +72,10 @@ class Installment extends Model
         return $this->status === self::STATUS_PENDENTE
             && $this->due_date !== null
             && $this->due_date->isPast();
+    }
+
+    protected function auditLabel(): string
+    {
+        return "Parcela nº {$this->number}";
     }
 }

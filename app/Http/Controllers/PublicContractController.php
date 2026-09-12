@@ -203,6 +203,7 @@ class PublicContractController extends Controller
             'contract_id' => $contract->id,
             'vendor_id' => $vendor?->id,
             'uploaded_by' => null,
+            'uploaded_by_type' => 'client',
             'document_type_id' => $data['document_type_id'],
             'title' => $data['title'],
         ];

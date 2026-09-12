@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ChecklistTemplateController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContractController;
@@ -80,6 +81,8 @@ Route::middleware('auth')->group(function () {
     Route::post('contracts/{contract}/vendors/{vendor}/restore', [VendorController::class, 'restore'])->name('vendors.restore');
 
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 });
 
 Route::prefix('portal/{token}')->name('public.')->group(function () {

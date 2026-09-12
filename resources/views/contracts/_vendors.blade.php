@@ -32,6 +32,9 @@
                         <p class="text-xs text-gray-500">
                             {{ $vendor->document ?: 'sem documento' }} &middot; {{ $vendor->vendorServiceType->name }}
                         </p>
+                        @if ($vendor->updatedByLabel())
+                            <p class="text-xs text-gray-400 mt-1">Última atualização: {{ $vendor->updatedByLabel() }} em {{ $vendor->updated_at->format('d/m/Y H:i') }}</p>
+                        @endif
                     </div>
                     <div class="flex items-center gap-3">
                         <button type="button" class="text-gray-600 hover:text-gray-900 text-sm" x-data x-on:click="$dispatch('open-modal', 'edit-vendor-{{ $vendor->id }}')">Editar</button>
