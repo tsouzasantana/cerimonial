@@ -33,13 +33,13 @@
 
     <div>
         <x-input-label for="phone" value="Telefone" />
-        <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" :value="old('phone', $client?->phone)" />
+        <x-text-input id="phone" name="phone" type="text" data-mask="phone" inputmode="numeric" placeholder="(00) 00000-0000" class="mt-1 block w-full" :value="old('phone', $client?->phone)" />
         <x-input-error :messages="$errors->get('phone')" class="mt-2" />
     </div>
 
     <div>
         <x-input-label for="phone_alt" value="Telefone alternativo" />
-        <x-text-input id="phone_alt" name="phone_alt" type="text" class="mt-1 block w-full" :value="old('phone_alt', $client?->phone_alt)" />
+        <x-text-input id="phone_alt" name="phone_alt" type="text" data-mask="phone" inputmode="numeric" placeholder="(00) 00000-0000" class="mt-1 block w-full" :value="old('phone_alt', $client?->phone_alt)" />
         <x-input-error :messages="$errors->get('phone_alt')" class="mt-2" />
     </div>
 </div>
@@ -86,7 +86,12 @@
 
     <div>
         <x-input-label for="address_state" value="UF" />
-        <x-text-input id="address_state" name="address_state" type="text" maxlength="2" class="mt-1 block w-full" :value="old('address_state', $client?->address_state)" />
+        <select id="address_state" name="address_state" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">
+            <option value="">Selecione...</option>
+            @foreach (\App\Support\BrazilianStates::options() as $uf => $label)
+                <option value="{{ $uf }}" @selected(old('address_state', $client?->address_state) === $uf)>{{ $uf }} &mdash; {{ $label }}</option>
+            @endforeach
+        </select>
         <x-input-error :messages="$errors->get('address_state')" class="mt-2" />
     </div>
 </div>

@@ -11,12 +11,20 @@ compartilhada (cPanel) com banco de dados **MySQL**.
 ## Funcionalidades
 
 - **Clientes**: cadastro completo (documento, contato, endereço), inativação
-  (soft delete) com possibilidade de reativação. O campo de CPF/CNPJ é
-  formatado automaticamente enquanto o usuário digita e validado no servidor
-  (dígito verificador oficial), tanto no cadastro de cliente quanto no de
-  fornecedor. O CEP também é formatado automaticamente e, ao sair do campo,
-  busca o endereço (rua, bairro, cidade, UF) via API ViaCEP e preenche os
-  demais campos.
+  (soft delete) com possibilidade de reativação. Vários campos têm máscara e
+  validação:
+  - **CPF/CNPJ**: formatado enquanto digita e validado no servidor pelo
+    dígito verificador oficial (rejeita sequências como 111.111.111-11),
+    tanto no cadastro de cliente quanto no de fornecedor.
+  - **Telefone**: formatado como `(00) 00000-0000` e validado (DDD válido,
+    celular com 9 dígitos começando em 9).
+  - **CEP**: formatado como `00000-000`, validado no servidor e, ao sair do
+    campo, busca o endereço (rua, bairro, cidade, UF) via API ViaCEP e
+    preenche os demais campos automaticamente.
+  - **UF**: lista suspensa com os 27 estados, em vez de texto livre.
+  - **Data de nascimento**: não aceita datas futuras nem anteriores a 1900.
+  - **Valores em R$** (preço de serviço, desconto do contrato, parcelas):
+    campo com máscara de milhar/centavos (ex: "R$ 1.500,00") enquanto digita.
 - **Serviços**: catálogo de serviços de cerimonial (nome, código, valor),
   usado para compor os itens de um contrato.
 - **Contratos de cerimonial**: dados do evento, status, itens/serviços

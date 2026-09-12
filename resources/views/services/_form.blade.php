@@ -14,8 +14,8 @@
     </div>
 
     <div>
-        <x-input-label for="price" value="Valor (R$)" />
-        <x-text-input id="price" name="price" type="number" step="0.01" min="0" class="mt-1 block w-full" :value="old('price', $service?->price)" required />
+        <x-input-label for="price" value="Valor" />
+        <x-currency-input name="price" :value="$service?->price" class="mt-1 block w-full" required />
         <x-input-error :messages="$errors->get('price')" class="mt-2" />
     </div>
 

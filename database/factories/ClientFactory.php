@@ -15,7 +15,7 @@ class ClientFactory extends Factory
             'name' => fake()->name(),
             'document' => $this->fakeCpf(),
             'email' => fake()->safeEmail(),
-            'phone' => fake()->numerify('###########'),
+            'phone' => fake()->numerify('1198#######'),
         ];
     }
 }

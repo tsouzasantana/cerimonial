@@ -26,6 +26,41 @@ function formatCep(digits) {
     return digits.replace(/(\d{5})(\d{1,3})$/, '$1-$2');
 }
 
+function formatPhone(digits) {
+    digits = digits.slice(0, 11);
+
+    if (digits.length > 10) {
+        return digits
+            .replace(/^(\d{2})(\d)/, '($1) $2')
+            .replace(/(\d{5})(\d)/, '$1-$2');
+    }
+
+    return digits
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{4})(\d)/, '$1-$2');
+}
+
+function syncCurrencyInput(displayInput) {
+    const hidden = document.getElementById(displayInput.dataset.target);
+    if (!hidden) return;
+
+    const digits = displayInput.value.replace(/\D/g, '');
+
+    if (digits === '') {
+        displayInput.value = '';
+        hidden.value = '';
+
+        return;
+    }
+
+    const reais = (parseInt(digits, 10) / 100).toFixed(2);
+    const [intPart, centPart] = reais.split('.');
+    const withThousands = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    displayInput.value = `${withThousands},${centPart}`;
+    hidden.value = reais;
+}
+
 document.addEventListener('input', (event) => {
     if (event.target.matches('[data-mask="document"]')) {
         const input = event.target;
@@ -37,6 +72,16 @@ document.addEventListener('input', (event) => {
         const input = event.target;
         const digits = input.value.replace(/\D/g, '').slice(0, 8);
         input.value = formatCep(digits);
+    }
+
+    if (event.target.matches('[data-mask="phone"]')) {
+        const input = event.target;
+        const digits = input.value.replace(/\D/g, '').slice(0, 11);
+        input.value = formatPhone(digits);
+    }
+
+    if (event.target.matches('[data-currency-input]')) {
+        syncCurrencyInput(event.target);
     }
 });
 

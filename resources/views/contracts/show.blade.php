@@ -205,8 +205,8 @@
                             <x-text-input id="number" name="number" type="number" min="1" class="mt-1 block w-20" required />
                         </div>
                         <div>
-                            <x-input-label for="amount" value="Valor (R$)" />
-                            <x-text-input id="amount" name="amount" type="number" step="0.01" min="0" class="mt-1 block w-32" required />
+                            <x-input-label for="amount" value="Valor" />
+                            <x-currency-input name="amount" class="mt-1 block w-32" required />
                         </div>
                         <div>
                             <x-input-label for="due_date" value="Vencimento" />
@@ -231,8 +231,8 @@
                                 class="mt-3 flex flex-wrap items-end gap-3" onsubmit="return confirm('Gerar as parcelas informadas?');">
                             @csrf
                             <div>
-                                <x-input-label for="total_amount" value="Valor total (R$)" />
-                                <x-text-input id="total_amount" name="total_amount" type="number" step="0.01" min="0.01" class="mt-1 block w-32" required />
+                                <x-input-label for="total_amount" value="Valor total" />
+                                <x-currency-input name="total_amount" class="mt-1 block w-32" required />
                             </div>
                             <div>
                                 <x-input-label for="installment_count" value="Qtde de parcelas" />

@@ -54,8 +54,8 @@
                         </div>
 
                         <div>
-                            <x-input-label for="discount" value="Desconto (R$)" />
-                            <x-text-input id="discount" name="discount" type="number" step="0.01" min="0" class="mt-1 block w-full" :value="old('discount', $contract->discount)" />
+                            <x-input-label for="discount" value="Desconto" />
+                            <x-currency-input name="discount" :value="$contract->discount" class="mt-1 block w-full" />
                             <x-input-error :messages="$errors->get('discount')" class="mt-2" />
                         </div>
 
