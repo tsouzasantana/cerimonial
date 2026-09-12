@@ -15,6 +15,7 @@ class AuditLog extends Model
         return [
             'created' => 'Criado',
             'updated' => 'Atualizado',
+            'reverted' => 'Revertido',
             'inactivated' => 'Inativado',
             'deleted' => 'Removido',
             'restored' => 'Restaurado',
@@ -57,6 +58,23 @@ class AuditLog extends Model
     public function auditable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function isRevertible(): bool
+    {
+        // Note: use getAttribute() rather than $this->changes — Eloquent's own
+        // HasAttributes trait declares a protected $changes property (dirty
+        // tracking from the last save), which shadows our "changes" column
+        // when accessed from inside the model class.
+        $changes = $this->getAttribute('changes');
+
+        if ($this->action !== 'updated' || empty($changes)) {
+            return false;
+        }
+
+        return collect($changes)->every(
+            fn ($change) => is_array($change) && array_key_exists('old', $change)
+        );
     }
 
     public function subjectLabel(): string

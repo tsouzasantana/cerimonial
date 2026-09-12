@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\Contract;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -30,5 +32,34 @@ class AuditLogController extends Controller
             'actionOptions' => AuditLog::actionOptions(),
             'actorTypeOptions' => AuditLog::actorTypeOptions(),
         ]);
+    }
+
+    public function revert(AuditLog $auditLog): RedirectResponse
+    {
+        abort_unless($auditLog->isRevertible(), 422, 'Esta atividade não pode ser revertida.');
+
+        $modelClass = $auditLog->auditable_type;
+        abort_unless(class_exists($modelClass), 404);
+
+        $query = $modelClass::query();
+        if (in_array(SoftDeletes::class, class_uses_recursive($modelClass), true)) {
+            $query = $modelClass::withTrashed();
+        }
+
+        $model = $query->find($auditLog->auditable_id);
+        abort_if(is_null($model), 404, 'Registro não encontrado (pode ter sido removido definitivamente).');
+
+        foreach ($auditLog->changes as $field => $change) {
+            $model->setAttribute($field, $change['old']);
+        }
+
+        $model->auditActionOverride = 'reverted';
+        $model->save();
+
+        $redirectTo = $auditLog->contract_id
+            ? route('contracts.show', ['contract' => $auditLog->contract_id, 'tab' => 'atividades'])
+            : route('audit-logs.index');
+
+        return redirect($redirectTo)->with('success', 'Alteração revertida com sucesso.');
     }
 }

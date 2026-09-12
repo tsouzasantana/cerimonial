@@ -18,8 +18,15 @@
 
     @if ($log->changes)
         <ul>
-            @foreach ($log->changes as $field => $value)
-                <li>{{ $field }}: {{ is_scalar($value) ? $value : json_encode($value) }}</li>
+            @foreach ($log->changes as $field => $change)
+                <li>
+                    @if (is_array($change) && array_key_exists('old', $change) && array_key_exists('new', $change))
+                        {{ $field }}: {{ is_scalar($change['old']) ? $change['old'] : json_encode($change['old']) }}
+                        &rarr; {{ is_scalar($change['new']) ? $change['new'] : json_encode($change['new']) }}
+                    @else
+                        {{ $field }}: {{ is_scalar($change) ? $change : json_encode($change) }}
+                    @endif
+                </li>
             @endforeach
         </ul>
     @endif

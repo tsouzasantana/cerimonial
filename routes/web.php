@@ -16,6 +16,7 @@ use App\Http\Controllers\OccurrenceTypeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicContractController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VendorServiceTypeController;
@@ -85,8 +86,11 @@ Route::middleware('auth')->group(function () {
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
 
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::post('audit-logs/{auditLog}/revert', [AuditLogController::class, 'revert'])->name('audit-logs.revert');
 
     Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
+
+    Route::get('search', [SearchController::class, 'index'])->name('search.index');
 });
 
 Route::prefix('portal/{token}')->name('public.')->group(function () {

@@ -75,13 +75,19 @@ compartilhada (cPanel) com banco de dados **MySQL**.
 - **Auditoria**: toda criação, edição, inativação e restauração de contratos,
   tarefas do checklist, fornecedores, parcelas, ocorrências, documentos e
   clientes fica registrada (quem fez — equipe ou cliente pelo portal público
-  — e o que mudou), disponível na aba "Atividades" de cada contrato e numa
-  página global de Auditoria com filtros por contrato, autor, ação e período.
-  Contratos, tarefas do checklist e fornecedores também exibem quem fez a
-  última atualização diretamente na tela.
+  — e o que mudou, com valor anterior e novo de cada campo), disponível na
+  aba "Atividades" de cada contrato e numa página global de Auditoria com
+  filtros por contrato, autor, ação e período. Uma edição registrada pode ser
+  **revertida** com um clique, o que gera por sua vez um novo registro de
+  auditoria ("revertido"). Contratos, tarefas do checklist e fornecedores
+  também exibem quem fez a última atualização diretamente na tela.
 - **Notificação de atividade do cliente**: sempre que o cliente altera algo
   pelo portal público (checklist, fornecedores ou documentos), a equipe
   recebe um e-mail com o resumo da alteração.
+- **Busca global**: campo de busca no topo de todas as telas, procurando
+  simultaneamente por clientes (nome, CPF/CNPJ, e-mail, telefone), contratos
+  (número, nome do cliente, local do evento) e fornecedores (nome,
+  CPF/CNPJ); registros inativados não aparecem nos resultados.
 - **Usuário único**: sistema pensado para um único usuário administrador (sem
   tela pública de cadastro); crie outros usuários manualmente se precisar.
 

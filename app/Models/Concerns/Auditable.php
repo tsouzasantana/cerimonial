@@ -18,6 +18,12 @@ use Illuminate\Support\Facades\Mail;
  */
 trait Auditable
 {
+    /**
+     * When set before a save(), overrides the audit action recorded for
+     * that update (e.g. "reverted" instead of the generic "updated").
+     */
+    public ?string $auditActionOverride = null;
+
     public static function bootAuditable(): void
     {
         static::created(fn (self $model) => $model->writeAuditLog('created'));
@@ -36,6 +42,11 @@ trait Auditable
         if ($action === 'updated' && $changes === []) {
             return;
         }
+
+        if ($action === 'updated' && $this->auditActionOverride) {
+            $action = $this->auditActionOverride;
+        }
+        $this->auditActionOverride = null;
 
         $log = AuditLog::create([
             'contract_id' => $this->auditContractId(),
@@ -71,10 +82,17 @@ trait Auditable
         }
     }
 
+    /**
+     * Old/new pairs for each changed field, e.g. ['name' => ['old' => 'A', 'new' => 'B']].
+     * The "old" side is what makes a later revert possible.
+     */
     protected function auditableChanges(): array
     {
         return collect($this->getChanges())
             ->except(['updated_at', 'updated_by_type', 'updated_by_name'])
+            ->mapWithKeys(fn ($new, $field) => [
+                $field => ['old' => $this->getOriginal($field), 'new' => $new],
+            ])
             ->all();
     }
 

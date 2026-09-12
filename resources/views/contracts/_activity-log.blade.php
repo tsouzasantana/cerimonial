@@ -29,15 +29,7 @@
                             @endif
                         </td>
                         <td class="py-2 pr-3 text-gray-500 text-xs max-w-sm">
-                            @if ($log->changes)
-                                <ul class="list-disc list-inside">
-                                    @foreach ($log->changes as $field => $value)
-                                        <li>{{ $field }}: {{ is_scalar($value) ? $value : json_encode($value) }}</li>
-                                    @endforeach
-                                </ul>
-                            @else
-                                —
-                            @endif
+                            @include('audit-logs._changes-cell', ['log' => $log])
                         </td>
                     </tr>
                 @endforeach
