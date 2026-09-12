@@ -19,7 +19,7 @@
                     <div><dt class="text-gray-500">Valor total</dt><dd class="text-gray-900">R$ {{ number_format($contract->total, 2, ',', '.') }}</dd></div>
                 </dl>
                 @if ($contract->pdf_path)
-                    <a href="{{ route('contracts.pdf.download', $contract) }}" class="inline-block mt-4 text-sm text-indigo-600 hover:text-indigo-800">Baixar contrato em PDF</a>
+                    <a href="{{ route('contracts.pdf.download', $contract) }}" class="inline-block mt-4 text-sm text-brand-600 hover:text-brand-800">Baixar contrato em PDF</a>
                 @endif
             </div>
 
@@ -27,7 +27,7 @@
                 <nav class="-mb-px flex flex-wrap gap-6">
                     @foreach (['resumo' => 'Serviços e pagamentos', 'documentos' => 'Documentos', 'ocorrencias' => 'Ocorrências', 'checklist' => 'Checklist', 'fornecedores' => 'Fornecedores'] as $key => $label)
                         <button type="button" @click="tab = '{{ $key }}'"
-                                :class="tab === '{{ $key }}' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                :class="tab === '{{ $key }}' ? 'border-brand-500 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                             {{ $label }}
                         </button>

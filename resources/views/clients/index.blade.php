@@ -35,7 +35,7 @@
                         @forelse ($clients as $client)
                             <tr>
                                 <td class="py-2 pr-3">
-                                    <a href="{{ route('clients.show', $client) }}" class="text-indigo-600 hover:text-indigo-800 font-medium">{{ $client->name }}</a>
+                                    <a href="{{ route('clients.show', $client) }}" class="text-brand-600 hover:text-brand-800 font-medium">{{ $client->name }}</a>
                                 </td>
                                 <td class="py-2 pr-3 text-gray-600">{{ $client->document }}</td>
                                 <td class="py-2 pr-3 text-gray-600">{{ $client->phone }}</td>

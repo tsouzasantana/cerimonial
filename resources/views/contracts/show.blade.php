@@ -28,11 +28,11 @@
                     <div class="flex flex-col gap-2">
                         <form method="POST" action="{{ route('contracts.pdf', $contract) }}">
                             @csrf
-                            <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500">
+                            <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 bg-brand-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-brand-500">
                                 Gerar PDF do contrato
                             </button>
                         </form>
-                        <a href="{{ route('contracts.pdf.download', $contract) }}" class="text-center text-sm text-indigo-600 hover:text-indigo-800">Baixar último PDF</a>
+                        <a href="{{ route('contracts.pdf.download', $contract) }}" class="text-center text-sm text-brand-600 hover:text-brand-800">Baixar último PDF</a>
                         <form method="POST" action="{{ route('contracts.send-email', $contract) }}" onsubmit="return confirm('Enviar o PDF do contrato para o e-mail do cliente?');">
                             @csrf
                             <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50">
@@ -65,7 +65,7 @@
                 <nav class="-mb-px flex flex-wrap gap-6">
                     @foreach (['resumo' => 'Serviços e pagamentos', 'documentos' => 'Documentos', 'ocorrencias' => 'Ocorrências', 'checklist' => 'Checklist', 'fornecedores' => 'Fornecedores', 'atividades' => 'Atividades'] as $key => $label)
                         <button type="button" @click="tab = '{{ $key }}'"
-                                :class="tab === '{{ $key }}' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                :class="tab === '{{ $key }}' ? 'border-brand-500 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                             {{ $label }}
                         </button>
@@ -224,7 +224,7 @@
                     </form>
 
                     <div class="mt-4 pt-4 border-t" x-data="{ open: false }">
-                        <button type="button" class="text-sm text-indigo-600 hover:text-indigo-800" x-on:click="open = ! open">
+                        <button type="button" class="text-sm text-brand-600 hover:text-brand-800" x-on:click="open = ! open">
                             Gerar parcelas em lote
                         </button>
                         <form x-show="open" x-cloak method="POST" action="{{ route('installments.store-batch', $contract) }}"
@@ -289,7 +289,7 @@
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="description" value="Descrição" />
-                        <textarea id="description" name="description" rows="2" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required></textarea>
+                        <textarea id="description" name="description" rows="2" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm" required></textarea>
                     </div>
                     <div class="sm:col-span-2 text-right">
                         <x-primary-button type="submit">Registrar ocorrência</x-primary-button>
@@ -310,7 +310,7 @@
                                             <p class="text-xs text-gray-500">Prazo: {{ $occurrence->deadline->format('d/m/Y') }}</p>
                                         @endif
                                         @if ($occurrence->attachment_path)
-                                            <a href="{{ route('occurrences.attachment', [$contract, $occurrence]) }}" class="text-xs text-indigo-600 hover:text-indigo-800">Baixar anexo</a>
+                                            <a href="{{ route('occurrences.attachment', [$contract, $occurrence]) }}" class="text-xs text-brand-600 hover:text-brand-800">Baixar anexo</a>
                                         @endif
                                     </div>
                                     <form method="POST" action="{{ route('occurrences.destroy', [$contract, $occurrence]) }}" onsubmit="return confirm('Inativar esta ocorrência?');">

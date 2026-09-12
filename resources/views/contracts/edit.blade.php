@@ -68,7 +68,7 @@
 
                     <div class="mt-6">
                         <x-input-label for="notes" value="Observações" />
-                        <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('notes', $contract->notes) }}</textarea>
+                        <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">{{ old('notes', $contract->notes) }}</textarea>
                         <x-input-error :messages="$errors->get('notes')" class="mt-2" />
                     </div>
 
@@ -89,7 +89,7 @@
                             </p>
                             <div class="flex flex-col gap-2">
                                 <button type="button"
-                                        class="w-full inline-flex justify-center items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500"
+                                        class="w-full inline-flex justify-center items-center px-4 py-2 bg-brand-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-brand-500"
                                         x-on:click="$refs.shiftField.value = '1'; decided = true; showDateModal = false; $el.closest('form').submit();">
                                     Atualizar prazos conforme nova data
                                 </button>

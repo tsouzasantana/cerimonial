@@ -76,7 +76,7 @@
                                         <td class="py-2 pr-3 text-gray-600 whitespace-nowrap">{{ $log->created_at->format('d/m/Y H:i') }}</td>
                                         <td class="py-2 pr-3 text-gray-600 whitespace-nowrap">
                                             @if ($log->contract)
-                                                <a href="{{ route('contracts.show', $log->contract) }}" class="text-indigo-600 hover:text-indigo-800">
+                                                <a href="{{ route('contracts.show', $log->contract) }}" class="text-brand-600 hover:text-brand-800">
                                                     #{{ $log->contract->id }} &mdash; {{ $log->contract->client->name }}
                                                 </a>
                                             @else

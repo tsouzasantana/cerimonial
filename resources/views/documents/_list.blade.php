@@ -14,11 +14,11 @@
             <li class="py-2 flex justify-between items-center gap-3">
                 <div class="min-w-0">
                     @if ($document->isLink())
-                        <a href="{{ $document->url }}" target="_blank" rel="noopener" class="text-indigo-600 hover:text-indigo-800">
+                        <a href="{{ $document->url }}" target="_blank" rel="noopener" class="text-brand-600 hover:text-brand-800">
                             {{ $document->title }} ↗
                         </a>
                     @else
-                        <a href="{{ $downloadUrl($document) }}" class="text-indigo-600 hover:text-indigo-800">
+                        <a href="{{ $downloadUrl($document) }}" class="text-brand-600 hover:text-brand-800">
                             {{ $document->title }}
                         </a>
                     @endif
@@ -29,7 +29,7 @@
                     <div class="flex items-center gap-3 shrink-0">
                         <form method="POST" action="{{ route('documents.send-email', $document) }}">
                             @csrf
-                            <button type="submit" class="text-indigo-600 hover:text-indigo-800 text-sm">Enviar e-mail</button>
+                            <button type="submit" class="text-brand-600 hover:text-brand-800 text-sm">Enviar e-mail</button>
                         </form>
                         <form method="POST" action="{{ route('documents.destroy', $document) }}" onsubmit="return confirm('Inativar este documento?');">
                             @csrf

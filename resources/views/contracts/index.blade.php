@@ -41,7 +41,7 @@
                         @forelse ($contracts as $contract)
                             <tr>
                                 <td class="py-2 pr-3">
-                                    <a href="{{ route('contracts.show', $contract) }}" class="text-indigo-600 hover:text-indigo-800 font-medium">{{ $contract->client->name }}</a>
+                                    <a href="{{ route('contracts.show', $contract) }}" class="text-brand-600 hover:text-brand-800 font-medium">{{ $contract->client->name }}</a>
                                 </td>
                                 <td class="py-2 pr-3 text-gray-600">{{ $contract->event_date->format('d/m/Y') }}</td>
                                 <td class="py-2 pr-3 text-gray-600">{{ $statusOptions[$contract->status] ?? $contract->status }}</td>

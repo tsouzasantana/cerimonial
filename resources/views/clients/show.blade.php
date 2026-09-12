@@ -36,7 +36,7 @@
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-medium text-gray-900">Contratos</h3>
-                    <a href="{{ route('contracts.create') }}" class="text-sm text-indigo-600 hover:text-indigo-800">Novo contrato</a>
+                    <a href="{{ route('contracts.create') }}" class="text-sm text-brand-600 hover:text-brand-800">Novo contrato</a>
                 </div>
                 @if ($client->contracts->isEmpty())
                     <p class="text-sm text-gray-500">Nenhum contrato cadastrado.</p>
@@ -44,7 +44,7 @@
                     <ul class="divide-y divide-gray-100">
                         @foreach ($client->contracts as $contract)
                             <li class="py-2 flex justify-between items-center">
-                                <a href="{{ route('contracts.show', $contract) }}" class="text-indigo-600 hover:text-indigo-800">
+                                <a href="{{ route('contracts.show', $contract) }}" class="text-brand-600 hover:text-brand-800">
                                     Evento em {{ $contract->event_date->format('d/m/Y') }}
                                 </a>
                                 <span class="text-sm text-gray-500">{{ \App\Models\Contract::statusOptions()[$contract->status] ?? $contract->status }}</span>

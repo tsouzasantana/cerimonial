@@ -14,9 +14,9 @@
                         <p class="text-xs text-green-700 uppercase tracking-wide">Recebido</p>
                         <p class="text-xl font-semibold text-green-800">R$ {{ number_format($financeiro['recebido'], 2, ',', '.') }}</p>
                     </div>
-                    <div class="bg-indigo-50 rounded-lg p-4">
-                        <p class="text-xs text-indigo-700 uppercase tracking-wide">A receber</p>
-                        <p class="text-xl font-semibold text-indigo-800">R$ {{ number_format($financeiro['a_receber'], 2, ',', '.') }}</p>
+                    <div class="bg-brand-50 rounded-lg p-4">
+                        <p class="text-xs text-brand-700 uppercase tracking-wide">A receber</p>
+                        <p class="text-xl font-semibold text-brand-800">R$ {{ number_format($financeiro['a_receber'], 2, ',', '.') }}</p>
                     </div>
                     <div class="bg-red-50 rounded-lg p-4">
                         <p class="text-xs text-red-600 uppercase tracking-wide">Parcelas em atraso</p>
@@ -75,7 +75,7 @@
                             <ul class="divide-y divide-gray-100 text-sm">
                                 @foreach ($contratos['proximos_eventos'] as $contract)
                                     <li class="py-2 flex justify-between">
-                                        <a href="{{ route('contracts.show', $contract) }}" class="text-indigo-600 hover:text-indigo-800">{{ $contract->client->name }}</a>
+                                        <a href="{{ route('contracts.show', $contract) }}" class="text-brand-600 hover:text-brand-800">{{ $contract->client->name }}</a>
                                         <span class="text-gray-500">{{ $contract->event_date->format('d/m/Y') }}</span>
                                     </li>
                                 @endforeach
@@ -101,9 +101,9 @@
                         <p class="text-xs text-green-700 uppercase tracking-wide">Concluídas</p>
                         <p class="text-xl font-semibold text-green-800">{{ $checklist['concluidas'] }}</p>
                     </div>
-                    <div class="bg-indigo-50 rounded-lg p-4">
-                        <p class="text-xs text-indigo-700 uppercase tracking-wide">Taxa de conclusão geral</p>
-                        <p class="text-xl font-semibold text-indigo-800">{{ $checklist['taxa_conclusao'] }}%</p>
+                    <div class="bg-brand-50 rounded-lg p-4">
+                        <p class="text-xs text-brand-700 uppercase tracking-wide">Taxa de conclusão geral</p>
+                        <p class="text-xl font-semibold text-brand-800">{{ $checklist['taxa_conclusao'] }}%</p>
                     </div>
                 </div>
 
@@ -114,7 +114,7 @@
                     <ul class="divide-y divide-gray-100 text-sm">
                         @foreach ($checklist['contratos_com_atraso'] as $contract)
                             <li class="py-2 flex justify-between">
-                                <a href="{{ route('contracts.show', ['contract' => $contract, 'tab' => 'checklist']) }}" class="text-indigo-600 hover:text-indigo-800">{{ $contract->client->name }}</a>
+                                <a href="{{ route('contracts.show', ['contract' => $contract, 'tab' => 'checklist']) }}" class="text-brand-600 hover:text-brand-800">{{ $contract->client->name }}</a>
                                 <span class="text-red-600 font-medium">{{ $contract->overdue_tasks_count }} atrasada(s)</span>
                             </li>
                         @endforeach

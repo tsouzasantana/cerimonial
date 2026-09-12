@@ -13,9 +13,9 @@
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <div class="flex items-center justify-between mb-6">
-                    <a href="{{ route('calendar.index', ['month' => $previousMonth]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; Mês anterior</a>
+                    <a href="{{ route('calendar.index', ['month' => $previousMonth]) }}" class="text-sm text-brand-600 hover:text-brand-800">&larr; Mês anterior</a>
                     <h3 class="text-lg font-medium text-gray-900">{{ $month->translatedFormat('F \d\e Y') }}</h3>
-                    <a href="{{ route('calendar.index', ['month' => $nextMonth]) }}" class="text-sm text-indigo-600 hover:text-indigo-800">Próximo mês &rarr;</a>
+                    <a href="{{ route('calendar.index', ['month' => $nextMonth]) }}" class="text-sm text-brand-600 hover:text-brand-800">Próximo mês &rarr;</a>
                 </div>
 
                 <div class="grid grid-cols-7 gap-px bg-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wide mb-px">
@@ -28,14 +28,14 @@
                     @foreach ($weeks as $week)
                         @foreach ($week as $day)
                             <div class="bg-white min-h-28 p-1.5 {{ $day['inMonth'] ? '' : 'bg-gray-50' }}">
-                                <p class="text-xs mb-1 {{ $day['isToday'] ? 'inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-600 text-white font-semibold' : ($day['inMonth'] ? 'text-gray-700' : 'text-gray-400') }}">
+                                <p class="text-xs mb-1 {{ $day['isToday'] ? 'inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-600 text-white font-semibold' : ($day['inMonth'] ? 'text-gray-700' : 'text-gray-400') }}">
                                     {{ $day['date']->day }}
                                 </p>
                                 <div class="space-y-1">
                                     @foreach ($day['contracts'] as $contract)
                                         <a href="{{ route('contracts.show', $contract) }}"
                                            class="block truncate text-xs rounded px-1.5 py-0.5
-                                                {{ $contract->status === Contract::STATUS_ATIVO ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-600' }}"
+                                                {{ $contract->status === Contract::STATUS_ATIVO ? 'bg-brand-100 text-brand-800' : 'bg-gray-100 text-gray-600' }}"
                                            title="{{ $contract->client->name }} — {{ Contract::statusOptions()[$contract->status] ?? $contract->status }}">
                                             {{ $contract->client->name }}
                                         </a>

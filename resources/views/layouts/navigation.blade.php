@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        <x-application-logo class="block h-9 w-auto" />
                     </a>
                 </div>
 
@@ -40,7 +40,7 @@
                         <button @click="open = ! open" type="button"
                                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out
                                 {{ request()->routeIs('occurrence-types.*') || request()->routeIs('document-types.*') || request()->routeIs('checklist-templates.*') || request()->routeIs('vendor-service-types.*')
-                                    ? 'border-indigo-400 text-gray-900'
+                                    ? 'border-brand-400 text-gray-900'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                             {{ __('Configurações') }}
                             <svg class="ms-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -74,7 +74,7 @@
             <div class="hidden sm:flex sm:items-center sm:ms-6 gap-4">
                 <form method="GET" action="{{ route('search.index') }}">
                     <input type="search" name="q" value="{{ request()->routeIs('search.*') ? request('q') : '' }}"
-                            placeholder="Buscar..." class="text-sm border-gray-300 rounded-md shadow-sm w-48 focus:border-indigo-500 focus:ring-indigo-500">
+                            placeholder="Buscar..." class="text-sm border-gray-300 rounded-md shadow-sm w-48 focus:border-brand-500 focus:ring-brand-500">
                 </form>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -125,7 +125,7 @@
         <div class="px-4 pt-2">
             <form method="GET" action="{{ route('search.index') }}">
                 <input type="search" name="q" value="{{ request()->routeIs('search.*') ? request('q') : '' }}"
-                        placeholder="Buscar..." class="text-sm border-gray-300 rounded-md shadow-sm w-full focus:border-indigo-500 focus:ring-indigo-500">
+                        placeholder="Buscar..." class="text-sm border-gray-300 rounded-md shadow-sm w-full focus:border-brand-500 focus:ring-brand-500">
             </form>
         </div>
         <div class="pt-2 pb-3 space-y-1">

@@ -30,6 +30,6 @@
 
 <div class="mt-6">
     <x-input-label for="notes" value="Observações" />
-    <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('notes', $service?->notes) }}</textarea>
+    <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">{{ old('notes', $service?->notes) }}</textarea>
     <x-input-error :messages="$errors->get('notes')" class="mt-2" />
 </div>

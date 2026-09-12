@@ -27,7 +27,7 @@
                         @foreach ($upcomingEvents as $contract)
                             <li class="py-3 flex justify-between items-center">
                                 <div>
-                                    <a href="{{ route('contracts.show', $contract) }}" class="font-medium text-indigo-600 hover:text-indigo-800">
+                                    <a href="{{ route('contracts.show', $contract) }}" class="font-medium text-brand-600 hover:text-brand-800">
                                         {{ $contract->client->name }}
                                     </a>
                                     <p class="text-sm text-gray-500">{{ $contract->event_date->format('d/m/Y') }} &mdash; {{ $contract->event_location }}</p>
@@ -47,7 +47,7 @@
                         @foreach ($overdueInstallments as $installment)
                             <li class="py-3 flex justify-between items-center">
                                 <div>
-                                    <a href="{{ route('contracts.show', $installment->contract) }}" class="font-medium text-indigo-600 hover:text-indigo-800">
+                                    <a href="{{ route('contracts.show', $installment->contract) }}" class="font-medium text-brand-600 hover:text-brand-800">
                                         {{ $installment->contract->client->name }}
                                     </a>
                                     <p class="text-sm text-gray-500">Parcela {{ $installment->number }} &mdash; vencida em {{ $installment->due_date->format('d/m/Y') }}</p>

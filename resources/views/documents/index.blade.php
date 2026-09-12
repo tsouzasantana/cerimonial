@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Documentos</h2>
-            <a href="{{ route('document-types.index') }}" class="text-sm text-indigo-600 hover:text-indigo-800">Gerenciar tipos de documento</a>
+            <a href="{{ route('document-types.index') }}" class="text-sm text-brand-600 hover:text-brand-800">Gerenciar tipos de documento</a>
         </div>
     </x-slot>
 
@@ -40,19 +40,19 @@
                             <tr>
                                 <td class="py-2 pr-3">
                                     @if ($document->isLink())
-                                        <a href="{{ $document->url }}" target="_blank" rel="noopener" class="text-indigo-600 hover:text-indigo-800 font-medium">{{ $document->title }} ↗</a>
+                                        <a href="{{ $document->url }}" target="_blank" rel="noopener" class="text-brand-600 hover:text-brand-800 font-medium">{{ $document->title }} ↗</a>
                                     @else
-                                        <a href="{{ route('documents.download', $document) }}" class="text-indigo-600 hover:text-indigo-800 font-medium">{{ $document->title }}</a>
+                                        <a href="{{ route('documents.download', $document) }}" class="text-brand-600 hover:text-brand-800 font-medium">{{ $document->title }}</a>
                                     @endif
                                 </td>
                                 <td class="py-2 pr-3 text-gray-600">{{ $document->documentType->name }}</td>
                                 <td class="py-2 pr-3 text-gray-600">
                                     @if ($document->vendor)
-                                        <a href="{{ route('contracts.show', ['contract' => $document->contract, 'tab' => 'fornecedores']) }}" class="hover:text-indigo-800">Fornecedor: {{ $document->vendor->name }}</a>
+                                        <a href="{{ route('contracts.show', ['contract' => $document->contract, 'tab' => 'fornecedores']) }}" class="hover:text-brand-800">Fornecedor: {{ $document->vendor->name }}</a>
                                     @elseif ($document->contract)
-                                        <a href="{{ route('contracts.show', $document->contract) }}" class="hover:text-indigo-800">Contrato #{{ $document->contract->id }}</a>
+                                        <a href="{{ route('contracts.show', $document->contract) }}" class="hover:text-brand-800">Contrato #{{ $document->contract->id }}</a>
                                     @elseif ($document->client)
-                                        <a href="{{ route('clients.show', $document->client) }}" class="hover:text-indigo-800">{{ $document->client->name }}</a>
+                                        <a href="{{ route('clients.show', $document->client) }}" class="hover:text-brand-800">{{ $document->client->name }}</a>
                                     @else
                                         —
                                     @endif
@@ -67,7 +67,7 @@
                                     @else
                                         <form method="POST" action="{{ route('documents.send-email', $document) }}" class="inline">
                                             @csrf
-                                            <button type="submit" class="text-indigo-600 hover:text-indigo-800 text-sm">Enviar e-mail</button>
+                                            <button type="submit" class="text-brand-600 hover:text-brand-800 text-sm">Enviar e-mail</button>
                                         </form>
                                         <form method="POST" action="{{ route('documents.destroy', $document) }}" class="inline" onsubmit="return confirm('Inativar este documento?');">
                                             @csrf

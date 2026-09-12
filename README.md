@@ -95,6 +95,23 @@ compartilhada (cPanel) com banco de dados **MySQL**.
 > traz uma estrutura básica de cláusulas. Revise e ajuste o texto com um
 > advogado antes de usar em produção.
 
+## Marca (Maria Casamenteira Assessoria)
+
+O sistema está personalizado com a identidade visual da Maria Casamenteira:
+
+- **Logo**: os arquivos ficam em `public/images/` — `logo.png` (logo completa, usada
+  no cabeçalho de todas as telas e no PDF do contrato) e `logo-icon.png` (apenas o
+  emblema, usado como favicon). Para trocar a logo no futuro, basta substituir esses
+  dois arquivos (mantendo os mesmos nomes) e regenerar os ícones de favicon a partir
+  de `logo-icon.png` nos tamanhos em `public/images/favicon-*.png`,
+  `public/images/apple-touch-icon.png` e `public/favicon.ico`.
+- **Cores**: a paleta bordô extraída da logo está definida em `tailwind.config.js`
+  (cores `brand.50` a `brand.900`). Toda a interface usa essa escala no lugar da cor
+  padrão do Breeze — para ajustar o tom, basta editar os valores lá e rodar
+  `npm run build` novamente.
+- **Nome da empresa**: definido por `COMPANY_NAME` no `.env` (usado no PDF, e-mails e
+  título das páginas).
+
 ## Requisitos
 
 - PHP 8.3 ou superior (com extensões padrão do Laravel: `pdo_mysql`, `mbstring`, `gd`/`dom` para o PDF)

@@ -10,7 +10,7 @@
             <span class="text-xs text-gray-600 mb-1">
                 {{ $isCurrency ? 'R$ '.number_format($point['total'], 0, ',', '.') : $point['total'] }}
             </span>
-            <div class="w-full bg-indigo-500 rounded-t" style="height: {{ $heightPct }}%"></div>
+            <div class="w-full bg-brand-500 rounded-t" style="height: {{ $heightPct }}%"></div>
             <span class="text-xs text-gray-500 mt-1">{{ $point['label'] }}</span>
         </div>
     @endforeach

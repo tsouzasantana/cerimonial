@@ -7,6 +7,8 @@
 
         <title>{{ config('cerimonial.company_name') }} — Área do cliente</title>
 
+        @include('layouts._favicons')
+
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
@@ -16,7 +18,10 @@
         <div class="min-h-screen bg-gray-100">
             <nav class="bg-white border-b border-gray-100">
                 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <span class="font-semibold text-gray-800">{{ config('cerimonial.company_name') }}</span>
+                    <div class="flex items-center gap-3">
+                        <x-application-logo class="h-9 w-auto" />
+                        <span class="font-semibold text-gray-800">{{ config('cerimonial.company_name') }}</span>
+                    </div>
                     <span class="text-xs text-gray-500 uppercase tracking-wide">Área do cliente</span>
                 </div>
             </nav>

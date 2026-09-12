@@ -43,9 +43,9 @@
         <p class="text-xs text-green-700 uppercase tracking-wide">Concluídas</p>
         <p class="text-2xl font-semibold text-green-800">{{ $doneCount }}</p>
     </div>
-    <div class="bg-indigo-50 rounded-lg p-4">
-        <p class="text-xs text-indigo-700 uppercase tracking-wide">Progresso</p>
-        <p class="text-2xl font-semibold text-indigo-800">{{ $totalCount ? round($doneCount / $totalCount * 100) : 0 }}%</p>
+    <div class="bg-brand-50 rounded-lg p-4">
+        <p class="text-xs text-brand-700 uppercase tracking-wide">Progresso</p>
+        <p class="text-2xl font-semibold text-brand-800">{{ $totalCount ? round($doneCount / $totalCount * 100) : 0 }}%</p>
     </div>
 </div>
 
@@ -160,7 +160,7 @@
 
             <div>
                 <x-input-label value="Observações" />
-                <textarea name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ $task->notes }}</textarea>
+                <textarea name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">{{ $task->notes }}</textarea>
             </div>
 
             <div class="flex justify-end gap-3">

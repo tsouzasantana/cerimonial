@@ -28,7 +28,7 @@
                         <ul class="divide-y divide-gray-100">
                             @foreach ($clients as $client)
                                 <li class="py-2">
-                                    <a href="{{ route('clients.show', $client) }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                                    <a href="{{ route('clients.show', $client) }}" class="text-brand-600 hover:text-brand-800 font-medium">
                                         {{ $client->name }}
                                     </a>
                                     <span class="text-xs text-gray-500">
@@ -48,7 +48,7 @@
                         <ul class="divide-y divide-gray-100">
                             @foreach ($contracts as $contract)
                                 <li class="py-2">
-                                    <a href="{{ route('contracts.show', $contract) }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                                    <a href="{{ route('contracts.show', $contract) }}" class="text-brand-600 hover:text-brand-800 font-medium">
                                         #{{ $contract->id }} &mdash; {{ $contract->client->name }}
                                     </a>
                                     <span class="text-xs text-gray-500">
@@ -69,7 +69,7 @@
                             @foreach ($vendors as $vendor)
                                 <li class="py-2">
                                     <a href="{{ route('contracts.show', ['contract' => $vendor->contract_id, 'tab' => 'fornecedores']) }}"
-                                       class="text-indigo-600 hover:text-indigo-800 font-medium">
+                                       class="text-brand-600 hover:text-brand-800 font-medium">
                                         {{ $vendor->name }}
                                     </a>
                                     <span class="text-xs text-gray-500">

@@ -73,7 +73,7 @@
                 @endif
 
                 <div class="mt-3 border-t pt-3" x-data="{ showDocs: false }">
-                    <button type="button" class="text-sm text-indigo-600 hover:text-indigo-800" x-on:click="showDocs = ! showDocs">
+                    <button type="button" class="text-sm text-brand-600 hover:text-brand-800" x-on:click="showDocs = ! showDocs">
                         Documentos ({{ $vendor->documents->count() }})
                     </button>
                     <div x-show="showDocs" x-cloak class="mt-3">
@@ -140,7 +140,7 @@
 
                     <div>
                         <x-input-label value="Observações" />
-                        <textarea name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ $vendor->notes }}</textarea>
+                        <textarea name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">{{ $vendor->notes }}</textarea>
                     </div>
 
                     <div class="flex justify-end gap-3">
@@ -195,7 +195,7 @@
         </div>
         <div class="sm:col-span-2">
             <x-input-label value="Observações" />
-            <textarea name="notes" rows="2" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"></textarea>
+            <textarea name="notes" rows="2" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm"></textarea>
         </div>
         <div class="sm:col-span-2 text-right">
             <x-primary-button type="submit">Adicionar fornecedor</x-primary-button>

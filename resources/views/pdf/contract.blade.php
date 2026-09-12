@@ -8,6 +8,7 @@
         h1 { font-size: 16px; text-align: center; margin-bottom: 4px; }
         h2 { font-size: 13px; margin-top: 18px; margin-bottom: 6px; border-bottom: 1px solid #d1d5db; padding-bottom: 2px; }
         .header { text-align: center; margin-bottom: 16px; }
+        .header img { height: 70px; margin-bottom: 6px; }
         .header p { margin: 2px 0; color: #4b5563; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         table th, table td { border: 1px solid #d1d5db; padding: 4px 6px; text-align: left; font-size: 11px; }
@@ -21,7 +22,14 @@
 </head>
 <body>
     <div class="header">
-        <h1>{{ config('cerimonial.company_name') }}</h1>
+        @php
+            $logoPath = public_path('images/logo.png');
+        @endphp
+        @if (is_file($logoPath))
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents($logoPath)) }}" alt="{{ config('cerimonial.company_name') }}">
+        @else
+            <h1>{{ config('cerimonial.company_name') }}</h1>
+        @endif
         @if (config('cerimonial.company_document'))
             <p>{{ config('cerimonial.company_document') }}</p>
         @endif
