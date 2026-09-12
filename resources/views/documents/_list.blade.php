@@ -1,3 +1,11 @@
+@php
+    $isPublic = $isPublic ?? false;
+    $token = $token ?? null;
+    $downloadUrl = fn ($document) => $isPublic
+        ? route('public.documents.download', ['token' => $token, 'document' => $document])
+        : route('documents.download', $document);
+@endphp
+
 @if ($documents->isEmpty())
     <p class="text-sm text-gray-500">Nenhum documento cadastrado.</p>
 @else
@@ -10,23 +18,25 @@
                             {{ $document->title }} ↗
                         </a>
                     @else
-                        <a href="{{ route('documents.download', $document) }}" class="text-indigo-600 hover:text-indigo-800">
+                        <a href="{{ $downloadUrl($document) }}" class="text-indigo-600 hover:text-indigo-800">
                             {{ $document->title }}
                         </a>
                     @endif
                     <span class="text-xs text-gray-500">({{ $document->documentType->name }})</span>
                 </div>
-                <div class="flex items-center gap-3 shrink-0">
-                    <form method="POST" action="{{ route('documents.send-email', $document) }}">
-                        @csrf
-                        <button type="submit" class="text-indigo-600 hover:text-indigo-800 text-sm">Enviar e-mail</button>
-                    </form>
-                    <form method="POST" action="{{ route('documents.destroy', $document) }}" onsubmit="return confirm('Inativar este documento?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Inativar</button>
-                    </form>
-                </div>
+                @unless ($isPublic)
+                    <div class="flex items-center gap-3 shrink-0">
+                        <form method="POST" action="{{ route('documents.send-email', $document) }}">
+                            @csrf
+                            <button type="submit" class="text-indigo-600 hover:text-indigo-800 text-sm">Enviar e-mail</button>
+                        </form>
+                        <form method="POST" action="{{ route('documents.destroy', $document) }}" onsubmit="return confirm('Inativar este documento?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Inativar</button>
+                        </form>
+                    </div>
+                @endunless
             </li>
         @endforeach
     </ul>

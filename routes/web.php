@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\ChecklistTemplateController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\ContractItemController;
+use App\Http\Controllers\ContractTaskController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentFileController;
 use App\Http\Controllers\DocumentTypeController;
@@ -10,6 +12,8 @@ use App\Http\Controllers\InstallmentController;
 use App\Http\Controllers\OccurrenceController;
 use App\Http\Controllers\OccurrenceTypeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicContractController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +55,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('occurrence-types', OccurrenceTypeController::class)->except(['show']);
     Route::resource('document-types', DocumentTypeController::class)->except(['show']);
+    Route::resource('checklist-templates', ChecklistTemplateController::class)->except(['show']);
 
     Route::get('documents', [DocumentFileController::class, 'index'])->name('documents.index');
     Route::post('documents', [DocumentFileController::class, 'store'])->name('documents.store');
@@ -58,6 +63,28 @@ Route::middleware('auth')->group(function () {
     Route::post('documents/{document}/send-email', [DocumentFileController::class, 'sendEmail'])->name('documents.send-email');
     Route::delete('documents/{document}', [DocumentFileController::class, 'destroy'])->name('documents.destroy');
     Route::post('documents/{document}/restore', [DocumentFileController::class, 'restore'])->name('documents.restore');
+
+    Route::post('contracts/{contract}/tasks', [ContractTaskController::class, 'store'])->name('contract-tasks.store');
+    Route::put('contracts/{contract}/tasks/{task}', [ContractTaskController::class, 'update'])->name('contract-tasks.update');
+    Route::patch('contracts/{contract}/tasks/{task}/status', [ContractTaskController::class, 'updateStatus'])->name('contract-tasks.status');
+    Route::delete('contracts/{contract}/tasks/{task}', [ContractTaskController::class, 'destroy'])->name('contract-tasks.destroy');
+    Route::post('contracts/{contract}/tasks/{task}/restore', [ContractTaskController::class, 'restore'])->name('contract-tasks.restore');
+    Route::post('contracts/{contract}/regenerate-public-link', [ContractController::class, 'regeneratePublicLink'])->name('contracts.regenerate-public-link');
+
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+});
+
+Route::prefix('portal/{token}')->name('public.')->group(function () {
+    Route::get('/', [PublicContractController::class, 'gate'])->name('gate');
+    Route::post('/verify', [PublicContractController::class, 'verify'])->name('verify');
+
+    Route::middleware('public.contract')->group(function () {
+        Route::get('/contrato', [PublicContractController::class, 'show'])->name('show');
+        Route::patch('/tasks/{task}/status', [PublicContractController::class, 'updateTaskStatus'])->name('tasks.status');
+        Route::put('/tasks/{task}', [PublicContractController::class, 'updateTask'])->name('tasks.update');
+        Route::post('/documents', [PublicContractController::class, 'storeDocument'])->name('documents.store');
+        Route::get('/documents/{document}/download', [PublicContractController::class, 'downloadDocument'])->name('documents.download');
+    });
 });
 
 require __DIR__.'/auth.php';

@@ -14,7 +14,7 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12" x-data="{ tab: '{{ request('tab', 'resumo') }}' }">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
@@ -44,157 +44,182 @@
                 @if ($contract->notes)
                     <p class="mt-4 text-sm text-gray-600"><strong>Observações:</strong> {{ $contract->notes }}</p>
                 @endif
-            </div>
 
-            {{-- Itens / serviços --}}
-            <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Serviços contratados</h3>
-
-                <table class="min-w-full divide-y divide-gray-200 mb-4">
-                    <thead>
-                        <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <th class="py-2 pr-3">Serviço</th>
-                            <th class="py-2 pr-3">Qtde</th>
-                            <th class="py-2 pr-3">Valor unitário</th>
-                            <th class="py-2 pr-3">Total</th>
-                            <th class="py-2 pr-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @forelse ($contract->items as $item)
-                            <tr>
-                                <td class="py-2 pr-3">{{ $item->service->name }}</td>
-                                <td class="py-2 pr-3">{{ $item->quantity }}</td>
-                                <td class="py-2 pr-3">R$ {{ number_format($item->unit_price, 2, ',', '.') }}</td>
-                                <td class="py-2 pr-3">R$ {{ number_format($item->total_price, 2, ',', '.') }}</td>
-                                <td class="py-2 pr-3 text-right">
-                                    <form method="POST" action="{{ route('contract-items.destroy', [$contract, $item]) }}" onsubmit="return confirm('Remover este item?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Remover</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="5" class="py-3 text-center text-gray-500">Nenhum serviço adicionado.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-
-                <form method="POST" action="{{ route('contract-items.store', $contract) }}" class="flex flex-wrap items-end gap-3">
-                    @csrf
-                    <div>
-                        <x-input-label for="service_id" value="Serviço" />
-                        <select id="service_id" name="service_id" class="mt-1 block w-64 border-gray-300 rounded-md shadow-sm" required>
-                            <option value="">Selecione...</option>
-                            @foreach ($services as $service)
-                                <option value="{{ $service->id }}">{{ $service->name }} (R$ {{ number_format($service->price, 2, ',', '.') }})</option>
-                            @endforeach
-                        </select>
+                <div class="mt-4 pt-4 border-t flex flex-wrap items-center justify-between gap-3">
+                    <div class="text-sm">
+                        <span class="text-gray-500">Link público do cliente (checklist + documentos, sem login):</span>
+                        <input type="text" readonly onclick="this.select()" value="{{ route('public.gate', $contract->public_token) }}"
+                                class="ml-2 w-72 text-xs border-gray-300 rounded-md bg-gray-50 text-gray-700">
                     </div>
-                    <div>
-                        <x-input-label for="quantity" value="Quantidade" />
-                        <x-text-input id="quantity" name="quantity" type="number" min="1" value="1" class="mt-1 block w-24" required />
-                    </div>
-                    <x-secondary-button type="submit">Adicionar</x-secondary-button>
-                </form>
-
-                <div class="mt-6 border-t pt-4 flex justify-end">
-                    <dl class="text-sm space-y-1 text-right">
-                        <div><dt class="inline text-gray-500">Subtotal:</dt> <dd class="inline text-gray-900 ml-2">R$ {{ number_format($contract->subtotal, 2, ',', '.') }}</dd></div>
-                        <div><dt class="inline text-gray-500">Desconto:</dt> <dd class="inline text-gray-900 ml-2">R$ {{ number_format($contract->discount, 2, ',', '.') }}</dd></div>
-                        <div><dt class="inline text-gray-700 font-semibold">Total:</dt> <dd class="inline text-gray-900 ml-2 font-semibold">R$ {{ number_format($contract->total, 2, ',', '.') }}</dd></div>
-                    </dl>
+                    <form method="POST" action="{{ route('contracts.regenerate-public-link', $contract) }}" onsubmit="return confirm('Gerar um novo link invalida o link atual. Continuar?');">
+                        @csrf
+                        <button type="submit" class="text-sm text-gray-500 hover:text-gray-700">Gerar novo link</button>
+                    </form>
                 </div>
             </div>
 
-            {{-- Parcelas de pagamento --}}
-            <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Parcelas de pagamento</h3>
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex flex-wrap gap-6">
+                    @foreach (['resumo' => 'Serviços e pagamentos', 'documentos' => 'Documentos', 'ocorrencias' => 'Ocorrências', 'checklist' => 'Checklist'] as $key => $label)
+                        <button type="button" @click="tab = '{{ $key }}'"
+                                :class="tab === '{{ $key }}' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+                            {{ $label }}
+                        </button>
+                    @endforeach
+                </nav>
+            </div>
 
-                <table class="min-w-full divide-y divide-gray-200 mb-4">
-                    <thead>
-                        <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <th class="py-2 pr-3">#</th>
-                            <th class="py-2 pr-3">Vencimento</th>
-                            <th class="py-2 pr-3">Valor</th>
-                            <th class="py-2 pr-3">Status</th>
-                            <th class="py-2 pr-3">Pago em</th>
-                            <th class="py-2 pr-3">Forma</th>
-                            <th class="py-2 pr-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @forelse ($contract->installments as $installment)
-                            <tr>
-                                <td class="py-2 pr-3">{{ $installment->number }}</td>
-                                <td class="py-2 pr-3 {{ $installment->isOverdue() ? 'text-red-600 font-medium' : '' }}">{{ $installment->due_date->format('d/m/Y') }}</td>
-                                <td class="py-2 pr-3">R$ {{ number_format($installment->amount, 2, ',', '.') }}</td>
-                                <td class="py-2 pr-3">
-                                    <form method="POST" action="{{ route('installments.update', [$contract, $installment]) }}" class="flex items-center gap-2">
-                                        @csrf
-                                        @method('PUT')
-                                        <input type="hidden" name="number" value="{{ $installment->number }}">
-                                        <input type="hidden" name="amount" value="{{ $installment->amount }}">
-                                        <input type="hidden" name="due_date" value="{{ $installment->due_date->format('Y-m-d') }}">
-                                        <select name="status" class="border-gray-300 rounded-md shadow-sm text-xs" onchange="this.form.submit()">
-                                            @foreach ($installmentStatuses as $value => $label)
-                                                <option value="{{ $value }}" @selected($installment->status === $value)>{{ $label }}</option>
-                                            @endforeach
-                                        </select>
-                                </td>
-                                <td class="py-2 pr-3">{{ optional($installment->paid_at)->format('d/m/Y') ?: '—' }}</td>
-                                <td class="py-2 pr-3">
-                                        <select name="payment_method" class="border-gray-300 rounded-md shadow-sm text-xs" onchange="this.form.submit()">
-                                            <option value="">—</option>
-                                            @foreach ($paymentMethods as $value => $label)
-                                                <option value="{{ $value }}" @selected($installment->payment_method === $value)>{{ $label }}</option>
-                                            @endforeach
-                                        </select>
-                                    </form>
-                                </td>
-                                <td class="py-2 pr-3 text-right">
-                                    <form method="POST" action="{{ route('installments.destroy', [$contract, $installment]) }}" onsubmit="return confirm('Inativar esta parcela?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Inativar</button>
-                                    </form>
-                                </td>
+            {{-- Serviços / itens + Parcelas --}}
+            <div x-show="tab === 'resumo'" class="space-y-6">
+                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Serviços contratados</h3>
+
+                    <table class="min-w-full divide-y divide-gray-200 mb-4">
+                        <thead>
+                            <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="py-2 pr-3">Serviço</th>
+                                <th class="py-2 pr-3">Qtde</th>
+                                <th class="py-2 pr-3">Valor unitário</th>
+                                <th class="py-2 pr-3">Total</th>
+                                <th class="py-2 pr-3"></th>
                             </tr>
-                        @empty
-                            <tr><td colspan="7" class="py-3 text-center text-gray-500">Nenhuma parcela cadastrada.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @forelse ($contract->items as $item)
+                                <tr>
+                                    <td class="py-2 pr-3">{{ $item->service->name }}</td>
+                                    <td class="py-2 pr-3">{{ $item->quantity }}</td>
+                                    <td class="py-2 pr-3">R$ {{ number_format($item->unit_price, 2, ',', '.') }}</td>
+                                    <td class="py-2 pr-3">R$ {{ number_format($item->total_price, 2, ',', '.') }}</td>
+                                    <td class="py-2 pr-3 text-right">
+                                        <form method="POST" action="{{ route('contract-items.destroy', [$contract, $item]) }}" onsubmit="return confirm('Remover este item?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Remover</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="5" class="py-3 text-center text-gray-500">Nenhum serviço adicionado.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
 
-                <form method="POST" action="{{ route('installments.store', $contract) }}" class="flex flex-wrap items-end gap-3">
-                    @csrf
-                    <div>
-                        <x-input-label for="number" value="Parcela nº" />
-                        <x-text-input id="number" name="number" type="number" min="1" class="mt-1 block w-20" required />
+                    <form method="POST" action="{{ route('contract-items.store', $contract) }}" class="flex flex-wrap items-end gap-3">
+                        @csrf
+                        <div>
+                            <x-input-label for="service_id" value="Serviço" />
+                            <select id="service_id" name="service_id" class="mt-1 block w-64 border-gray-300 rounded-md shadow-sm" required>
+                                <option value="">Selecione...</option>
+                                @foreach ($services as $service)
+                                    <option value="{{ $service->id }}">{{ $service->name }} (R$ {{ number_format($service->price, 2, ',', '.') }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <x-input-label for="quantity" value="Quantidade" />
+                            <x-text-input id="quantity" name="quantity" type="number" min="1" value="1" class="mt-1 block w-24" required />
+                        </div>
+                        <x-secondary-button type="submit">Adicionar</x-secondary-button>
+                    </form>
+
+                    <div class="mt-6 border-t pt-4 flex justify-end">
+                        <dl class="text-sm space-y-1 text-right">
+                            <div><dt class="inline text-gray-500">Subtotal:</dt> <dd class="inline text-gray-900 ml-2">R$ {{ number_format($contract->subtotal, 2, ',', '.') }}</dd></div>
+                            <div><dt class="inline text-gray-500">Desconto:</dt> <dd class="inline text-gray-900 ml-2">R$ {{ number_format($contract->discount, 2, ',', '.') }}</dd></div>
+                            <div><dt class="inline text-gray-700 font-semibold">Total:</dt> <dd class="inline text-gray-900 ml-2 font-semibold">R$ {{ number_format($contract->total, 2, ',', '.') }}</dd></div>
+                        </dl>
                     </div>
-                    <div>
-                        <x-input-label for="amount" value="Valor (R$)" />
-                        <x-text-input id="amount" name="amount" type="number" step="0.01" min="0" class="mt-1 block w-32" required />
-                    </div>
-                    <div>
-                        <x-input-label for="due_date" value="Vencimento" />
-                        <x-text-input id="due_date" name="due_date" type="date" class="mt-1 block w-40" required />
-                    </div>
-                    <div>
-                        <x-input-label for="status" value="Status" />
-                        <select id="status" name="status" class="mt-1 block w-32 border-gray-300 rounded-md shadow-sm">
-                            @foreach ($installmentStatuses as $value => $label)
-                                <option value="{{ $value }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <x-secondary-button type="submit">Adicionar parcela</x-secondary-button>
-                </form>
+                </div>
+
+                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Parcelas de pagamento</h3>
+
+                    <table class="min-w-full divide-y divide-gray-200 mb-4">
+                        <thead>
+                            <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="py-2 pr-3">#</th>
+                                <th class="py-2 pr-3">Vencimento</th>
+                                <th class="py-2 pr-3">Valor</th>
+                                <th class="py-2 pr-3">Status</th>
+                                <th class="py-2 pr-3">Pago em</th>
+                                <th class="py-2 pr-3">Forma</th>
+                                <th class="py-2 pr-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @forelse ($contract->installments as $installment)
+                                <tr>
+                                    <td class="py-2 pr-3">{{ $installment->number }}</td>
+                                    <td class="py-2 pr-3 {{ $installment->isOverdue() ? 'text-red-600 font-medium' : '' }}">{{ $installment->due_date->format('d/m/Y') }}</td>
+                                    <td class="py-2 pr-3">R$ {{ number_format($installment->amount, 2, ',', '.') }}</td>
+                                    <td class="py-2 pr-3">
+                                        <form method="POST" action="{{ route('installments.update', [$contract, $installment]) }}" class="flex items-center gap-2">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="number" value="{{ $installment->number }}">
+                                            <input type="hidden" name="amount" value="{{ $installment->amount }}">
+                                            <input type="hidden" name="due_date" value="{{ $installment->due_date->format('Y-m-d') }}">
+                                            <select name="status" class="border-gray-300 rounded-md shadow-sm text-xs" onchange="this.form.submit()">
+                                                @foreach ($installmentStatuses as $value => $label)
+                                                    <option value="{{ $value }}" @selected($installment->status === $value)>{{ $label }}</option>
+                                                @endforeach
+                                            </select>
+                                    </td>
+                                    <td class="py-2 pr-3">{{ optional($installment->paid_at)->format('d/m/Y') ?: '—' }}</td>
+                                    <td class="py-2 pr-3">
+                                            <select name="payment_method" class="border-gray-300 rounded-md shadow-sm text-xs" onchange="this.form.submit()">
+                                                <option value="">—</option>
+                                                @foreach ($paymentMethods as $value => $label)
+                                                    <option value="{{ $value }}" @selected($installment->payment_method === $value)>{{ $label }}</option>
+                                                @endforeach
+                                            </select>
+                                        </form>
+                                    </td>
+                                    <td class="py-2 pr-3 text-right">
+                                        <form method="POST" action="{{ route('installments.destroy', [$contract, $installment]) }}" onsubmit="return confirm('Inativar esta parcela?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Inativar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="7" class="py-3 text-center text-gray-500">Nenhuma parcela cadastrada.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
+                    <form method="POST" action="{{ route('installments.store', $contract) }}" class="flex flex-wrap items-end gap-3">
+                        @csrf
+                        <div>
+                            <x-input-label for="number" value="Parcela nº" />
+                            <x-text-input id="number" name="number" type="number" min="1" class="mt-1 block w-20" required />
+                        </div>
+                        <div>
+                            <x-input-label for="amount" value="Valor (R$)" />
+                            <x-text-input id="amount" name="amount" type="number" step="0.01" min="0" class="mt-1 block w-32" required />
+                        </div>
+                        <div>
+                            <x-input-label for="due_date" value="Vencimento" />
+                            <x-text-input id="due_date" name="due_date" type="date" class="mt-1 block w-40" required />
+                        </div>
+                        <div>
+                            <x-input-label for="status" value="Status" />
+                            <select id="status" name="status" class="mt-1 block w-32 border-gray-300 rounded-md shadow-sm">
+                                @foreach ($installmentStatuses as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <x-secondary-button type="submit">Adicionar parcela</x-secondary-button>
+                    </form>
+                </div>
             </div>
 
             {{-- Documentos --}}
-            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+            <div x-show="tab === 'documentos'" class="bg-white shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Documentos do contrato</h3>
 
                 @include('documents._form', ['contractId' => $contract->id, 'documentTypes' => $documentTypes])
@@ -202,7 +227,7 @@
             </div>
 
             {{-- Ocorrências / histórico --}}
-            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+            <div x-show="tab === 'ocorrencias'" class="bg-white shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Histórico de ocorrências</h3>
 
                 <form method="POST" action="{{ route('occurrences.store', $contract) }}" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
@@ -264,6 +289,12 @@
                         @endforeach
                     </ul>
                 @endif
+            </div>
+
+            {{-- Checklist --}}
+            <div x-show="tab === 'checklist'" class="bg-white shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Checklist do evento</h3>
+                @include('contracts._checklist', ['isPublic' => false])
             </div>
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Contract extends Model
 {
@@ -28,6 +29,13 @@ class Contract extends Model
             self::STATUS_CONCLUIDO => 'Concluído',
             self::STATUS_CANCELADO => 'Cancelado',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Contract $contract) {
+            $contract->public_token ??= Str::random(48);
+        });
     }
 
     protected $fillable = [
@@ -85,6 +93,11 @@ class Contract extends Model
         return $this->hasMany(Occurrence::class);
     }
 
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(ContractTask::class);
+    }
+
     public function recalculateTotals(): void
     {
         $subtotal = $this->items()->sum('total_price');
@@ -94,5 +107,35 @@ class Contract extends Model
             'subtotal' => $subtotal,
             'total' => $total,
         ])->save();
+    }
+
+    public function applyChecklistTemplate(): void
+    {
+        $sortOrder = 0;
+
+        ChecklistTemplate::orderByDesc('days_offset')->get()->each(function (ChecklistTemplate $template) use (&$sortOrder) {
+            $this->tasks()->create([
+                'name' => $template->name,
+                'due_date' => $template->dueDateFor($this->event_date),
+                'status' => ContractTask::STATUS_A_INICIAR,
+                'sort_order' => $sortOrder++,
+            ]);
+        });
+    }
+
+    public function shiftChecklistDates(int $deltaDays): void
+    {
+        if ($deltaDays === 0) {
+            return;
+        }
+
+        $this->tasks()->get()->each(function (ContractTask $task) use ($deltaDays) {
+            $task->update(['due_date' => $task->due_date->copy()->addDays($deltaDays)]);
+        });
+    }
+
+    public function regeneratePublicToken(): void
+    {
+        $this->forceFill(['public_token' => Str::random(48)])->save();
     }
 }

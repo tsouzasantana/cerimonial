@@ -32,6 +32,25 @@ compartilhada (cPanel) com banco de dados **MySQL**.
   sistema.
 - **E-mail**: envio do PDF do contrato e de documentos avulsos por e-mail
   diretamente para o cliente.
+- **Checklist do evento**: lista de tarefas com prazo, status (a iniciar / em
+  andamento / concluída / cancelada) e observações, aplicada automaticamente
+  a cada novo contrato a partir de um **checklist padrão editável**
+  (Configurações → Checklist Padrão), com o prazo de cada tarefa calculado em
+  dias antes (ou depois) da data do evento. A tela do checklist mostra um
+  painel com o total de tarefas, atrasadas e progresso, além de filtro por
+  status e ordenação por coluna. Ao mudar a data do evento de um contrato com
+  checklist já aplicado, o sistema pergunta se deseja manter os prazos
+  originais ou deslocar todos pela mesma diferença de dias.
+- **Portal público do cliente**: cada contrato tem um link único (sem login)
+  onde o cliente confirma o CPF cadastrado e pode acompanhar o contrato,
+  atualizar o status/prazo/observações das tarefas do checklist e enviar
+  documentos — sem poder alterar dados do contrato, itens, parcelas ou
+  documentos já existentes. O link pode ser regenerado a qualquer momento
+  pela tela do contrato, invalidando o anterior.
+- **Relatórios**: dashboard gerencial com indicadores financeiros (recebido,
+  a receber, parcelas em atraso), de contratos (por status, novos por mês,
+  próximos eventos), de checklist (tarefas atrasadas, taxa de conclusão) e
+  de clientes (novos cadastros por mês).
 - **Usuário único**: sistema pensado para um único usuário administrador (sem
   tela pública de cadastro); crie outros usuários manualmente se precisar.
 
@@ -111,9 +130,10 @@ O seeder cria:
 
 Os documentos enviados (RG, comprovantes, contratos assinados digitalizados
 etc.) ficam em `storage/app/private` (disco `local`), **fora** da pasta
-pública — não são acessíveis diretamente por URL, apenas pelas rotas
-autenticadas de download do sistema. Garanta backups periódicos dessa pasta
-junto com o banco de dados.
+pública — não são acessíveis diretamente por URL, apenas pelas rotas de
+download do sistema (autenticadas para a equipe, ou pelo portal público do
+cliente após confirmar o CPF do contrato). Garanta backups periódicos dessa
+pasta junto com o banco de dados.
 
 ## Testes
 
@@ -134,3 +154,9 @@ php artisan test
 | `document_files` | Documentos anexados a clientes/contratos — upload de arquivo OU link na nuvem (soft delete) |
 | `occurrence_types` | Tipos de ocorrência configuráveis, podendo alterar o status do contrato |
 | `occurrences` | Histórico de ocorrências de cada contrato |
+| `checklist_templates` | Checklist padrão editável, com prazo em dias antes/depois do evento |
+| `contract_tasks` | Tarefas do checklist de cada contrato (copiadas do template ao criar o contrato) |
+
+`contracts.public_token` guarda o token do link público de cada contrato
+(rota `portal/{token}`), usado pelo cliente para acessar o checklist e enviar
+documentos sem login, após confirmar o CPF cadastrado.

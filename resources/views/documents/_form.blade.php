@@ -2,9 +2,10 @@
     // $documentTypes, and one of $clientId / $contractId must be provided by the including view.
     $clientId = $clientId ?? null;
     $contractId = $contractId ?? null;
+    $formAction = $formAction ?? route('documents.store');
 @endphp
 
-<form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data"
+<form method="POST" action="{{ $formAction }}" enctype="multipart/form-data"
         x-data="{ mode: 'file' }" class="mb-6 space-y-3">
     @csrf
     @if ($clientId)

@@ -10,6 +10,7 @@ use App\Models\DocumentType;
 use App\Models\Installment;
 use App\Models\OccurrenceType;
 use App\Models\Service;
+use App\Support\ChecklistQuery;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,12 +56,13 @@ class ContractController extends Controller
 
         $contract = Contract::create($data);
         $contract->recalculateTotals();
+        $contract->applyChecklistTemplate();
 
         return redirect()->route('contracts.show', $contract)
             ->with('success', 'Contrato criado com sucesso.');
     }
 
-    public function show(Contract $contract): View
+    public function show(Contract $contract, Request $request): View
     {
         $contract->load([
             'client',
@@ -68,6 +70,7 @@ class ContractController extends Controller
             'installments' => fn ($q) => $q->orderBy('number'),
             'documents.documentType',
             'occurrences' => fn ($q) => $q->with('type')->orderByDesc('occurrence_date'),
+            'tasks',
         ]);
 
         $services = Service::where('active', true)->orderBy('name')->get();
@@ -75,6 +78,7 @@ class ContractController extends Controller
         $paymentMethods = Installment::paymentMethodOptions();
         $installmentStatuses = Installment::statusOptions();
         $documentTypes = DocumentType::orderBy('name')->get();
+        $checklistTasks = ChecklistQuery::forContract($contract, $request);
 
         return view('contracts.show', compact(
             'contract',
@@ -83,6 +87,7 @@ class ContractController extends Controller
             'paymentMethods',
             'installmentStatuses',
             'documentTypes',
+            'checklistTasks',
         ));
     }
 
@@ -90,8 +95,9 @@ class ContractController extends Controller
     {
         $clients = Client::orderBy('name')->get();
         $statusOptions = Contract::statusOptions();
+        $hasChecklistTasks = $contract->tasks()->exists();
 
-        return view('contracts.edit', compact('contract', 'clients', 'statusOptions'));
+        return view('contracts.edit', compact('contract', 'clients', 'statusOptions', 'hasChecklistTasks'));
     }
 
     public function update(ContractRequest $request, Contract $contract): RedirectResponse
@@ -99,8 +105,17 @@ class ContractController extends Controller
         $data = $request->validated();
         $data['discount'] = $data['discount'] ?? 0;
 
+        $oldEventDate = $contract->event_date->copy();
+
         $contract->update($data);
         $contract->recalculateTotals();
+
+        $newEventDate = $contract->event_date;
+
+        if (! $oldEventDate->isSameDay($newEventDate) && $request->boolean('shift_checklist_dates')) {
+            $deltaDays = $oldEventDate->diffInDays($newEventDate, false);
+            $contract->shiftChecklistDates((int) $deltaDays);
+        }
 
         return redirect()->route('contracts.show', $contract)
             ->with('success', 'Contrato atualizado com sucesso.');
@@ -120,6 +135,14 @@ class ContractController extends Controller
 
         return redirect()->route('contracts.index')
             ->with('success', 'Contrato reativado com sucesso.');
+    }
+
+    public function regeneratePublicLink(Contract $contract): RedirectResponse
+    {
+        $contract->regeneratePublicToken();
+
+        return redirect()->route('contracts.show', $contract)
+            ->with('success', 'Novo link público gerado. O link anterior deixou de funcionar.');
     }
 
     public function generatePdf(Contract $contract): RedirectResponse
