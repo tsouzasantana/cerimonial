@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ChecklistTemplateController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContractController;
@@ -83,6 +84,8 @@ Route::middleware('auth')->group(function () {
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
 
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+
+    Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
 });
 
 Route::prefix('portal/{token}')->name('public.')->group(function () {
