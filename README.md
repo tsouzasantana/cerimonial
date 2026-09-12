@@ -152,8 +152,12 @@ O seeder cria:
 
 ## Deploy em hospedagem compartilhada (cPanel)
 
-1. **Banco de dados**: crie um banco MySQL e um usuário com todos os
-   privilégios via cPanel → MySQL Databases.
+1. **Banco de dados**: crie um banco MySQL e um usuário via cPanel → MySQL
+   Databases. Conceda apenas os privilégios que a aplicação realmente usa —
+   `SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP, REFERENCES`
+   — em vez de "todos os privilégios" (`ALL PRIVILEGES`). Isso cobre as
+   consultas do Eloquent e a execução de `migrate`, sem conceder permissões
+   administrativas como `GRANT OPTION`.
 2. **Envio dos arquivos**: envie todo o projeto para uma pasta **fora** de
    `public_html` (ex: `~/cerimonial`), mantendo a pasta `public/` como única
    parte exposta.
@@ -171,6 +175,12 @@ O seeder cria:
    - `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL` com o domínio real.
    - `APP_KEY`: gere localmente com `php artisan key:generate --show` e cole o valor.
    - `DB_*` com os dados do banco MySQL criado no passo 1.
+   - Se o banco MySQL estiver em um host remoto (fora do mesmo servidor da
+     aplicação), defina `MYSQL_ATTR_SSL_CA` com o caminho do certificado CA
+     do provedor para cifrar a conexão via TLS (a verificação do certificado
+     do servidor é habilitada automaticamente quando essa variável está
+     definida). Não é necessário em bancos no mesmo servidor (conexão via
+     `localhost`/socket), cenário comum em hospedagem cPanel.
    - `MAIL_*` com os dados de SMTP fornecidos pelo cPanel (ou outro provedor de e-mail).
    - `ADMIN_*` com os dados do usuário administrador antes de rodar o seeder.
    - `COMPANY_*` com os dados da empresa exibidos no PDF do contrato.
@@ -202,8 +212,39 @@ Os documentos enviados (RG, comprovantes, contratos assinados digitalizados
 etc.) ficam em `storage/app/private` (disco `local`), **fora** da pasta
 pública — não são acessíveis diretamente por URL, apenas pelas rotas de
 download do sistema (autenticadas para a equipe, ou pelo portal público do
-cliente após confirmar o CPF do contrato). Garanta backups periódicos dessa
-pasta junto com o banco de dados.
+cliente após confirmar o CPF do contrato). O comando de backup abaixo
+inclui os documentos junto com o banco de dados.
+
+### Backup automatizado do banco de dados
+
+O comando `php artisan db:backup` gera um dump compactado (`.gz`) do banco
+em `storage/app/private/backups`:
+
+```bash
+php artisan db:backup             # mantém backups dos últimos 30 dias (padrão)
+php artisan db:backup --keep-days=7   # ajusta a retenção
+```
+
+- Em SQLite (desenvolvimento), copia o arquivo do banco.
+- Em MySQL/MariaDB (produção), usa `mysqldump` (precisa estar disponível no
+  `PATH` do servidor).
+- Backups mais antigos que `--keep-days` são removidos automaticamente a
+  cada execução.
+
+Esse comando já está agendado para rodar diariamente via
+`routes/console.php` (`Schedule::command('db:backup')->daily()`). Para que o
+agendador do Laravel funcione, adicione uma única entrada de cron no cPanel
+(Cron Jobs) apontando para o `artisan` do projeto, executada a cada minuto:
+
+```
+* * * * * php /home/SEU_USUARIO/cerimonial/artisan schedule:run >> /dev/null 2>&1
+```
+
+O Laravel decide internamente quando cada tarefa agendada (como o backup
+diário) deve realmente rodar — não é necessário criar um cron por tarefa.
+Como os documentos enviados ficam fora do dump do banco, inclua também a
+pasta `storage/app/private` numa rotina de backup de arquivos (ex: backup
+de conta completo do próprio cPanel).
 
 ## Testes
 

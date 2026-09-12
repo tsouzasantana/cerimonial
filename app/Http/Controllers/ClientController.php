@@ -16,10 +16,12 @@ class ClientController extends Controller
         $clients = Client::query()
             ->when($request->boolean('trashed'), fn ($query) => $query->onlyTrashed())
             ->when($request->filled('search'), function ($query) use ($request) {
-                $term = "%{$request->string('search')}%";
+                $search = (string) $request->string('search');
+                $term = "%{$search}%";
+                $matchingIds = Client::idsMatchingDocument($search);
                 $query->where(fn ($q) => $q->where('name', 'like', $term)
-                    ->orWhere('document', 'like', $term)
-                    ->orWhere('email', 'like', $term));
+                    ->orWhere('email', 'like', $term)
+                    ->when($matchingIds !== [], fn ($q) => $q->orWhereIn('id', $matchingIds)));
             })
             ->orderBy('name')
             ->paginate(15)

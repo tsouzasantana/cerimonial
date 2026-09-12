@@ -35,7 +35,9 @@ class DocumentValidationTest extends TestCase
             'document' => '529.982.247-25',
         ])->assertSessionDoesntHaveErrors('document');
 
-        $this->assertDatabaseHas('clients', ['name' => 'Cliente Teste', 'document' => '529.982.247-25']);
+        $client = Client::where('name', 'Cliente Teste')->firstOrFail();
+        $this->assertSame('529.982.247-25', $client->document);
+        $this->assertDatabaseMissing('clients', ['document' => '529.982.247-25']);
     }
 
     public function test_client_with_valid_cnpj_is_accepted(): void

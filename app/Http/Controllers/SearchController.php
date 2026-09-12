@@ -23,12 +23,14 @@ class SearchController extends Controller
             ]);
         }
 
+        $matchingClientIds = Client::idsMatchingDocument($term);
+
         $clients = Client::query()
-            ->where(function ($query) use ($term) {
+            ->where(function ($query) use ($term, $matchingClientIds) {
                 $query->where('name', 'like', "%{$term}%")
-                    ->orWhere('document', 'like', "%{$term}%")
                     ->orWhere('email', 'like', "%{$term}%")
-                    ->orWhere('phone', 'like', "%{$term}%");
+                    ->orWhere('phone', 'like', "%{$term}%")
+                    ->when($matchingClientIds !== [], fn ($q) => $q->orWhereIn('id', $matchingClientIds));
             })
             ->orderBy('name')
             ->limit(20)
@@ -45,11 +47,13 @@ class SearchController extends Controller
             ->limit(20)
             ->get();
 
+        $matchingVendorIds = Vendor::idsMatchingDocument($term);
+
         $vendors = Vendor::query()
             ->with('contract.client')
-            ->where(function ($query) use ($term) {
+            ->where(function ($query) use ($term, $matchingVendorIds) {
                 $query->where('name', 'like', "%{$term}%")
-                    ->orWhere('document', 'like', "%{$term}%");
+                    ->when($matchingVendorIds !== [], fn ($q) => $q->orWhereIn('id', $matchingVendorIds));
             })
             ->orderBy('name')
             ->limit(20)
