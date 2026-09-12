@@ -16,6 +16,7 @@ class PublicDocumentRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'document_type_id' => ['required', 'exists:document_types,id'],
+            'vendor_id' => ['nullable', 'exists:vendors,id'],
             'file' => ['required_without:url', 'nullable', 'file', 'max:20480'],
             'url' => ['required_without:file', 'nullable', 'url', 'max:2048'],
         ];

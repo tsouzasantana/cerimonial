@@ -10,6 +10,7 @@ use App\Models\DocumentType;
 use App\Models\Installment;
 use App\Models\OccurrenceType;
 use App\Models\Service;
+use App\Models\VendorServiceType;
 use App\Support\ChecklistQuery;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
@@ -71,6 +72,7 @@ class ContractController extends Controller
             'documents.documentType',
             'occurrences' => fn ($q) => $q->with('type')->orderByDesc('occurrence_date'),
             'tasks',
+            'vendors' => fn ($q) => $q->with(['vendorServiceType', 'documents.documentType']),
         ]);
 
         $services = Service::where('active', true)->orderBy('name')->get();
@@ -78,6 +80,7 @@ class ContractController extends Controller
         $paymentMethods = Installment::paymentMethodOptions();
         $installmentStatuses = Installment::statusOptions();
         $documentTypes = DocumentType::orderBy('name')->get();
+        $vendorServiceTypes = VendorServiceType::orderBy('name')->get();
         $checklistTasks = ChecklistQuery::forContract($contract, $request);
 
         return view('contracts.show', compact(
@@ -87,6 +90,7 @@ class ContractController extends Controller
             'paymentMethods',
             'installmentStatuses',
             'documentTypes',
+            'vendorServiceTypes',
             'checklistTasks',
         ));
     }

@@ -98,6 +98,11 @@ class Contract extends Model
         return $this->hasMany(ContractTask::class);
     }
 
+    public function vendors(): HasMany
+    {
+        return $this->hasMany(Vendor::class);
+    }
+
     public function recalculateTotals(): void
     {
         $subtotal = $this->items()->sum('total_price');

@@ -35,5 +35,6 @@ class DatabaseSeeder extends Seeder
         $this->call(ServiceSeeder::class);
         $this->call(DocumentTypeSeeder::class);
         $this->call(ChecklistTemplateSeeder::class);
+        $this->call(VendorServiceTypeSeeder::class);
     }
 }

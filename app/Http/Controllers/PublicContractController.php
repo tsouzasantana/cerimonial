@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ContractTaskRequest;
 use App\Http\Requests\PublicDocumentRequest;
 use App\Http\Requests\PublicTaskUpdateRequest;
+use App\Http\Requests\PublicVendorUpdateRequest;
+use App\Http\Requests\VendorRequest;
 use App\Models\Contract;
 use App\Models\ContractTask;
 use App\Models\DocumentFile;
 use App\Models\DocumentType;
+use App\Models\Vendor;
+use App\Models\VendorServiceType;
 use App\Support\ChecklistQuery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -70,12 +75,14 @@ class PublicContractController extends Controller
             'documents.documentType',
             'occurrences' => fn ($q) => $q->with('type')->orderByDesc('occurrence_date'),
             'tasks',
+            'vendors' => fn ($q) => $q->with(['vendorServiceType', 'documents.documentType']),
         ]);
 
         $documentTypes = DocumentType::orderBy('name')->get();
+        $vendorServiceTypes = VendorServiceType::orderBy('name')->get();
         $checklistTasks = ChecklistQuery::forContract($contract, $request);
 
-        return view('public.show', compact('contract', 'token', 'documentTypes', 'checklistTasks'));
+        return view('public.show', compact('contract', 'token', 'documentTypes', 'vendorServiceTypes', 'checklistTasks'));
     }
 
     public function updateTaskStatus(Request $request, string $token, ContractTask $task): JsonResponse
@@ -107,6 +114,31 @@ class PublicContractController extends Controller
             ->with('success', 'Tarefa atualizada.');
     }
 
+    public function storeTask(ContractTaskRequest $request, string $token): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        $maxOrder = (int) $contract->tasks()->max('sort_order');
+
+        $contract->tasks()->create($request->validated() + [
+            'status' => ContractTask::STATUS_A_INICIAR,
+            'sort_order' => $maxOrder + 1,
+        ]);
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'checklist'])
+            ->with('success', 'Tarefa adicionada ao checklist.');
+    }
+
+    public function destroyTask(Request $request, string $token, ContractTask $task): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        abort_unless($task->contract_id === $contract->id, 404);
+
+        $task->delete();
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'checklist'])
+            ->with('success', 'Tarefa inativada.');
+    }
+
     public function downloadDocument(Request $request, string $token, DocumentFile $document): StreamedResponse
     {
         $contract = $request->attributes->get('publicContract');
@@ -117,14 +149,59 @@ class PublicContractController extends Controller
         return Storage::disk('local')->download($document->path, $document->original_filename);
     }
 
+    public function storeVendor(VendorRequest $request, string $token): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        $data = $request->validated();
+        $data['vendor_service_type_id'] = VendorServiceType::resolveId(
+            $data['vendor_service_type_id'] ?? null,
+            $data['new_service_type'] ?? null,
+        );
+        unset($data['new_service_type']);
+
+        $contract->vendors()->create($data);
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'fornecedores'])
+            ->with('success', 'Fornecedor cadastrado com sucesso.');
+    }
+
+    public function updateVendor(PublicVendorUpdateRequest $request, string $token, Vendor $vendor): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        abort_unless($vendor->contract_id === $contract->id, 404);
+
+        $vendor->update($request->validated());
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'fornecedores'])
+            ->with('success', 'Fornecedor atualizado com sucesso.');
+    }
+
+    public function destroyVendor(Request $request, string $token, Vendor $vendor): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        abort_unless($vendor->contract_id === $contract->id, 404);
+
+        $vendor->delete();
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'fornecedores'])
+            ->with('success', 'Fornecedor inativado com sucesso.');
+    }
+
     public function storeDocument(PublicDocumentRequest $request, string $token): RedirectResponse
     {
         $contract = $request->attributes->get('publicContract');
         $data = $request->validated();
 
+        $vendor = null;
+        if (! empty($data['vendor_id'])) {
+            $vendor = Vendor::findOrFail($data['vendor_id']);
+            abort_unless($vendor->contract_id === $contract->id, 404);
+        }
+
         $attributes = [
             'client_id' => $contract->client_id,
             'contract_id' => $contract->id,
+            'vendor_id' => $vendor?->id,
             'uploaded_by' => null,
             'document_type_id' => $data['document_type_id'],
             'title' => $data['title'],
@@ -145,7 +222,7 @@ class PublicContractController extends Controller
 
         DocumentFile::create($attributes);
 
-        return redirect()->route('public.show', ['token' => $token, 'tab' => 'documentos'])
+        return redirect()->route('public.show', ['token' => $token, 'tab' => $vendor ? 'fornecedores' : 'documentos'])
             ->with('success', 'Documento enviado com sucesso.');
     }
 }

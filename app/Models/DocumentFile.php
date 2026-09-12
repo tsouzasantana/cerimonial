@@ -14,6 +14,7 @@ class DocumentFile extends Model
     protected $fillable = [
         'client_id',
         'contract_id',
+        'vendor_id',
         'uploaded_by',
         'document_type_id',
         'title',
@@ -32,6 +33,11 @@ class DocumentFile extends Model
     public function contract(): BelongsTo
     {
         return $this->belongsTo(Contract::class);
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class);
     }
 
     public function uploader(): BelongsTo

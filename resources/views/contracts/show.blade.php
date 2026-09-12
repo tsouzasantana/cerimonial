@@ -60,7 +60,7 @@
 
             <div class="border-b border-gray-200">
                 <nav class="-mb-px flex flex-wrap gap-6">
-                    @foreach (['resumo' => 'Serviços e pagamentos', 'documentos' => 'Documentos', 'ocorrencias' => 'Ocorrências', 'checklist' => 'Checklist'] as $key => $label)
+                    @foreach (['resumo' => 'Serviços e pagamentos', 'documentos' => 'Documentos', 'ocorrencias' => 'Ocorrências', 'checklist' => 'Checklist', 'fornecedores' => 'Fornecedores'] as $key => $label)
                         <button type="button" @click="tab = '{{ $key }}'"
                                 :class="tab === '{{ $key }}' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
@@ -295,6 +295,12 @@
             <div x-show="tab === 'checklist'" class="bg-white shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Checklist do evento</h3>
                 @include('contracts._checklist', ['isPublic' => false])
+            </div>
+
+            {{-- Fornecedores --}}
+            <div x-show="tab === 'fornecedores'" class="bg-white shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Fornecedores</h3>
+                @include('contracts._vendors', ['isPublic' => false])
             </div>
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">

@@ -8,6 +8,8 @@ use App\Models\ContractTask;
 use App\Models\DocumentFile;
 use App\Models\DocumentType;
 use App\Models\User;
+use App\Models\Vendor;
+use App\Models\VendorServiceType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -102,6 +104,25 @@ class PublicPortalTest extends TestCase
         $this->assertSame('Atualizado pelo cliente', $task->notes);
     }
 
+    public function test_verified_client_can_add_and_inactivate_a_checklist_task(): void
+    {
+        $contract = $this->contractWithClientCpf();
+        $this->post(route('public.verify', $contract->public_token), ['document' => $contract->client->document]);
+
+        $this->post(route('public.tasks.store', $contract->public_token), [
+            'name' => 'Tarefa criada pelo cliente',
+            'due_date' => now()->addDays(5)->format('Y-m-d'),
+        ])->assertRedirect();
+
+        $task = ContractTask::where('contract_id', $contract->id)->firstOrFail();
+        $this->assertSame('Tarefa criada pelo cliente', $task->name);
+
+        $this->delete(route('public.tasks.destroy', [$contract->public_token, $task]))
+            ->assertRedirect();
+
+        $this->assertSoftDeleted($task);
+    }
+
     public function test_verified_client_can_upload_a_document_as_a_guest(): void
     {
         Storage::fake('local');
@@ -165,5 +186,72 @@ class PublicPortalTest extends TestCase
         $this->post(route('public.verify', $contract->public_token), ['document' => $contract->client->document]);
 
         $this->get(route('contracts.index'))->assertRedirect(route('login'));
+    }
+
+    public function test_verified_client_can_create_a_vendor(): void
+    {
+        $contract = $this->contractWithClientCpf();
+        $type = VendorServiceType::factory()->create();
+        $this->post(route('public.verify', $contract->public_token), ['document' => $contract->client->document]);
+
+        $this->post(route('public.vendors.store', $contract->public_token), [
+            'name' => 'Floricultura Jardim',
+            'vendor_service_type_id' => $type->id,
+            'status' => Vendor::STATUS_A_PRESTAR,
+            'payment_status' => Vendor::PAYMENT_NAO_PAGO,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('vendors', [
+            'contract_id' => $contract->id,
+            'name' => 'Floricultura Jardim',
+        ]);
+    }
+
+    public function test_verified_client_can_update_vendor_status_but_not_rename_it(): void
+    {
+        $contract = $this->contractWithClientCpf();
+        $vendor = Vendor::factory()->create(['contract_id' => $contract->id, 'name' => 'Nome original']);
+        $this->post(route('public.verify', $contract->public_token), ['document' => $contract->client->document]);
+
+        $this->put(route('public.vendors.update', [$contract->public_token, $vendor]), [
+            'name' => 'Tentando trocar o nome',
+            'status' => Vendor::STATUS_PRESTADO,
+            'payment_status' => Vendor::PAYMENT_PARCIAL,
+            'notes' => 'Atualizado pelo cliente',
+        ])->assertRedirect();
+
+        $vendor->refresh();
+        $this->assertSame('Nome original', $vendor->name);
+        $this->assertSame(Vendor::STATUS_PRESTADO, $vendor->status);
+        $this->assertSame(Vendor::PAYMENT_PARCIAL, $vendor->payment_status);
+    }
+
+    public function test_verified_client_can_inactivate_a_vendor(): void
+    {
+        $contract = $this->contractWithClientCpf();
+        $vendor = Vendor::factory()->create(['contract_id' => $contract->id]);
+        $this->post(route('public.verify', $contract->public_token), ['document' => $contract->client->document]);
+
+        $this->delete(route('public.vendors.destroy', [$contract->public_token, $vendor]))
+            ->assertRedirect();
+
+        $this->assertSoftDeleted($vendor);
+    }
+
+    public function test_client_cannot_attach_a_document_to_a_vendor_from_another_contract(): void
+    {
+        $contractA = $this->contractWithClientCpf('111.111.111-11');
+        $contractB = $this->contractWithClientCpf('222.222.222-22');
+        $vendorOnA = Vendor::factory()->create(['contract_id' => $contractA->id]);
+        $type = DocumentType::factory()->create();
+
+        $this->post(route('public.verify', $contractB->public_token), ['document' => '222.222.222-22']);
+
+        $this->post(route('public.documents.store', $contractB->public_token), [
+            'title' => 'Ataque',
+            'document_type_id' => $type->id,
+            'vendor_id' => $vendorOnA->id,
+            'url' => 'https://example.com/doc',
+        ])->assertNotFound();
     }
 }

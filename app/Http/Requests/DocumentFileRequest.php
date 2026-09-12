@@ -18,6 +18,7 @@ class DocumentFileRequest extends FormRequest
             'document_type_id' => ['required', 'exists:document_types,id'],
             'client_id' => ['nullable', 'exists:clients,id'],
             'contract_id' => ['nullable', 'exists:contracts,id'],
+            'vendor_id' => ['nullable', 'exists:vendors,id'],
             'file' => ['required_without:url', 'nullable', 'file', 'max:20480'],
             'url' => ['required_without:file', 'nullable', 'url', 'max:2048'],
         ];

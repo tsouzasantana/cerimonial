@@ -6,6 +6,7 @@ use App\Http\Requests\DocumentFileRequest;
 use App\Mail\DocumentFileMail;
 use App\Models\DocumentFile;
 use App\Models\DocumentType;
+use App\Models\Vendor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -18,7 +19,7 @@ class DocumentFileController extends Controller
     public function index(Request $request): View
     {
         $documents = DocumentFile::query()
-            ->with(['client', 'contract', 'documentType'])
+            ->with(['client', 'contract', 'vendor', 'documentType'])
             ->when($request->boolean('trashed'), fn ($query) => $query->onlyTrashed())
             ->when($request->filled('document_type_id'), fn ($query) => $query->where('document_type_id', $request->integer('document_type_id')))
             ->when($request->filled('search'), fn ($query) => $query->where('title', 'like', '%'.$request->string('search').'%'))
@@ -34,10 +35,12 @@ class DocumentFileController extends Controller
     public function store(DocumentFileRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        $vendor = ! empty($data['vendor_id']) ? Vendor::find($data['vendor_id']) : null;
 
         $attributes = [
             'client_id' => $data['client_id'] ?? null,
-            'contract_id' => $data['contract_id'] ?? null,
+            'contract_id' => $vendor?->contract_id ?? $data['contract_id'] ?? null,
+            'vendor_id' => $vendor?->id,
             'uploaded_by' => $request->user()->id,
             'document_type_id' => $data['document_type_id'],
             'title' => $data['title'],

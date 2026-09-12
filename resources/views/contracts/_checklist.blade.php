@@ -15,6 +15,14 @@
         ? route('public.tasks.update', ['token' => $contract->public_token, 'task' => $task])
         : route('contract-tasks.update', [$contract, $task]);
 
+    $destroyUrl = fn ($task) => $isPublic
+        ? route('public.tasks.destroy', ['token' => $contract->public_token, 'task' => $task])
+        : route('contract-tasks.destroy', [$contract, $task]);
+
+    $storeUrl = $isPublic
+        ? route('public.tasks.store', $contract->public_token)
+        : route('contract-tasks.store', $contract);
+
     $currentSort = request()->query('checklist_sort', 'due_date');
     $currentDirection = request()->query('checklist_direction', 'asc') === 'desc' ? 'desc' : 'asc';
     $nextDirection = fn ($col) => ($currentSort === $col && $currentDirection === 'asc') ? 'desc' : 'asc';
@@ -97,13 +105,11 @@
                     <td class="py-2 pr-3 text-gray-600 max-w-xs truncate" title="{{ $task->notes }}">{{ $task->notes ?: '—' }}</td>
                     <td class="py-2 pr-3 text-right whitespace-nowrap">
                         <button type="button" class="text-gray-600 hover:text-gray-900 text-sm" x-data x-on:click="$dispatch('open-modal', 'edit-task-{{ $task->id }}')">Editar</button>
-                        @if (! $isPublic)
-                            <form method="POST" action="{{ route('contract-tasks.destroy', [$contract, $task]) }}" class="inline" onsubmit="return confirm('Inativar esta tarefa?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-800 text-sm ml-2">Inativar</button>
-                            </form>
-                        @endif
+                        <form method="POST" action="{{ $destroyUrl($task) }}" class="inline" onsubmit="return confirm('Inativar esta tarefa?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:text-red-800 text-sm ml-2">Inativar</button>
+                        </form>
                     </td>
                 </tr>
             @empty
@@ -157,27 +163,25 @@
     </x-modal>
 @endforeach
 
-@if (! $isPublic)
-    <div class="mt-6 border-t pt-4">
-        <h4 class="text-sm font-medium text-gray-900 mb-3">Adicionar tarefa avulsa</h4>
-        <form method="POST" action="{{ route('contract-tasks.store', $contract) }}" class="flex flex-wrap items-end gap-3">
-            @csrf
-            <div>
-                <x-input-label value="Nome da tarefa" />
-                <x-text-input name="name" type="text" class="mt-1 block w-64" required />
-            </div>
-            <div>
-                <x-input-label value="Prazo" />
-                <x-text-input name="due_date" type="date" class="mt-1 block w-40" required />
-            </div>
-            <div>
-                <x-input-label value="Observações" />
-                <x-text-input name="notes" type="text" class="mt-1 block w-64" />
-            </div>
-            <x-secondary-button type="submit">Adicionar</x-secondary-button>
-        </form>
-    </div>
-@endif
+<div class="mt-6 border-t pt-4">
+    <h4 class="text-sm font-medium text-gray-900 mb-3">Adicionar tarefa avulsa</h4>
+    <form method="POST" action="{{ $storeUrl }}" class="flex flex-wrap items-end gap-3">
+        @csrf
+        <div>
+            <x-input-label value="Nome da tarefa" />
+            <x-text-input name="name" type="text" class="mt-1 block w-64" required />
+        </div>
+        <div>
+            <x-input-label value="Prazo" />
+            <x-text-input name="due_date" type="date" class="mt-1 block w-40" required />
+        </div>
+        <div>
+            <x-input-label value="Observações" />
+            <x-text-input name="notes" type="text" class="mt-1 block w-64" />
+        </div>
+        <x-secondary-button type="submit">Adicionar</x-secondary-button>
+    </form>
+</div>
 
 <script>
 document.addEventListener('change', function (event) {

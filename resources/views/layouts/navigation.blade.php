@@ -33,7 +33,7 @@
                     <div class="hidden sm:flex sm:items-center relative" x-data="{ open: false }" @click.outside="open = false">
                         <button @click="open = ! open" type="button"
                                 class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out
-                                {{ request()->routeIs('occurrence-types.*') || request()->routeIs('document-types.*') || request()->routeIs('checklist-templates.*')
+                                {{ request()->routeIs('occurrence-types.*') || request()->routeIs('document-types.*') || request()->routeIs('checklist-templates.*') || request()->routeIs('vendor-service-types.*')
                                     ? 'border-indigo-400 text-gray-900'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                             {{ __('Configurações') }}
@@ -54,6 +54,9 @@
                                 </x-dropdown-link>
                                 <x-dropdown-link :href="route('checklist-templates.index')">
                                     {{ __('Checklist Padrão') }}
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('vendor-service-types.index')">
+                                    {{ __('Tipos de Serviço de Fornecedor') }}
                                 </x-dropdown-link>
                             </div>
                         </div>
@@ -136,6 +139,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('checklist-templates.index')" :active="request()->routeIs('checklist-templates.*')">
                 {{ __('Checklist Padrão') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('vendor-service-types.index')" :active="request()->routeIs('vendor-service-types.*')">
+                {{ __('Tipos de Serviço de Fornecedor') }}
             </x-responsive-nav-link>
         </div>
 

@@ -15,6 +15,7 @@ class DocumentTypeSeeder extends Seeder
             'Comprovante de pagamento',
             'Inspiração / referência visual',
             'Contrato de outro fornecedor',
+            'Proposta comercial',
             'Outro',
         ];
 

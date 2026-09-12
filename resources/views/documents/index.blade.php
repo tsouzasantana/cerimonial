@@ -46,7 +46,9 @@
                                 </td>
                                 <td class="py-2 pr-3 text-gray-600">{{ $document->documentType->name }}</td>
                                 <td class="py-2 pr-3 text-gray-600">
-                                    @if ($document->contract)
+                                    @if ($document->vendor)
+                                        <a href="{{ route('contracts.show', ['contract' => $document->contract, 'tab' => 'fornecedores']) }}" class="hover:text-indigo-800">Fornecedor: {{ $document->vendor->name }}</a>
+                                    @elseif ($document->contract)
                                         <a href="{{ route('contracts.show', $document->contract) }}" class="hover:text-indigo-800">Contrato #{{ $document->contract->id }}</a>
                                     @elseif ($document->client)
                                         <a href="{{ route('clients.show', $document->client) }}" class="hover:text-indigo-800">{{ $document->client->name }}</a>

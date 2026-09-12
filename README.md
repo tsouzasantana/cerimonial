@@ -38,13 +38,25 @@ compartilhada (cPanel) com banco de dados **MySQL**.
   (Configurações → Checklist Padrão), com o prazo de cada tarefa calculado em
   dias antes (ou depois) da data do evento. A tela do checklist mostra um
   painel com o total de tarefas, atrasadas e progresso, além de filtro por
-  status e ordenação por coluna. Ao mudar a data do evento de um contrato com
-  checklist já aplicado, o sistema pergunta se deseja manter os prazos
-  originais ou deslocar todos pela mesma diferença de dias.
+  status e ordenação por coluna; tarefas podem ser adicionadas ou inativadas
+  tanto pela equipe quanto pelo cliente. Ao mudar a data do evento de um
+  contrato com checklist já aplicado, o sistema pergunta se deseja manter os
+  prazos originais ou deslocar todos pela mesma diferença de dias.
+- **Fornecedores**: cadastro de fornecedores por contrato (nome, CPF/CNPJ,
+  tipo de serviço prestado — lista **configurável** em Configurações → Tipos
+  de Serviço de Fornecedor, com opção de digitar um tipo novo na hora),
+  status do serviço (a prestar / prestado / cancelado), situação de
+  pagamento (não pago / pago parcialmente / pago integralmente), observações
+  e anexo de um ou mais documentos (contratos, comprovantes, propostas —
+  reaproveitando o mesmo sistema de documentos com tipo configurável).
+  Fornecedores podem ser cadastrados, editados e inativados tanto pela
+  equipe quanto pelo cliente.
 - **Portal público do cliente**: cada contrato tem um link único (sem login)
   onde o cliente confirma o CPF cadastrado e pode acompanhar o contrato,
-  atualizar o status/prazo/observações das tarefas do checklist e enviar
-  documentos — sem poder alterar dados do contrato, itens, parcelas ou
+  gerenciar o checklist (status, prazo, observações, adicionar/inativar
+  tarefas) e os fornecedores (cadastrar, atualizar status/pagamento/
+  observações, inativar), e enviar documentos — sem poder alterar dados do
+  contrato, itens, parcelas, o nome/tipo de fornecedores já cadastrados, nem
   documentos já existentes. O link pode ser regenerado a qualquer momento
   pela tela do contrato, invalidando o anterior.
 - **Relatórios**: dashboard gerencial com indicadores financeiros (recebido,
@@ -151,11 +163,13 @@ php artisan test
 | `contract_items` | Itens (serviços) de cada contrato |
 | `installments` | Parcelas de pagamento de cada contrato |
 | `document_types` | Tipos de documento configuráveis (contrato assinado, inspiração, contrato de fornecedor etc.) |
-| `document_files` | Documentos anexados a clientes/contratos — upload de arquivo OU link na nuvem (soft delete) |
+| `document_files` | Documentos anexados a clientes/contratos/fornecedores — upload de arquivo OU link na nuvem (soft delete) |
 | `occurrence_types` | Tipos de ocorrência configuráveis, podendo alterar o status do contrato |
 | `occurrences` | Histórico de ocorrências de cada contrato |
 | `checklist_templates` | Checklist padrão editável, com prazo em dias antes/depois do evento |
 | `contract_tasks` | Tarefas do checklist de cada contrato (copiadas do template ao criar o contrato) |
+| `vendor_service_types` | Tipos de serviço de fornecedor configuráveis (buffet, decoração, etc.) |
+| `vendors` | Fornecedores de cada contrato, com status de serviço e de pagamento |
 
 `contracts.public_token` guarda o token do link público de cada contrato
 (rota `portal/{token}`), usado pelo cliente para acessar o checklist e enviar

@@ -15,6 +15,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicContractController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VendorServiceTypeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -56,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('occurrence-types', OccurrenceTypeController::class)->except(['show']);
     Route::resource('document-types', DocumentTypeController::class)->except(['show']);
     Route::resource('checklist-templates', ChecklistTemplateController::class)->except(['show']);
+    Route::resource('vendor-service-types', VendorServiceTypeController::class)->except(['show']);
 
     Route::get('documents', [DocumentFileController::class, 'index'])->name('documents.index');
     Route::post('documents', [DocumentFileController::class, 'store'])->name('documents.store');
@@ -71,6 +74,11 @@ Route::middleware('auth')->group(function () {
     Route::post('contracts/{contract}/tasks/{task}/restore', [ContractTaskController::class, 'restore'])->name('contract-tasks.restore');
     Route::post('contracts/{contract}/regenerate-public-link', [ContractController::class, 'regeneratePublicLink'])->name('contracts.regenerate-public-link');
 
+    Route::post('contracts/{contract}/vendors', [VendorController::class, 'store'])->name('vendors.store');
+    Route::put('contracts/{contract}/vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
+    Route::delete('contracts/{contract}/vendors/{vendor}', [VendorController::class, 'destroy'])->name('vendors.destroy');
+    Route::post('contracts/{contract}/vendors/{vendor}/restore', [VendorController::class, 'restore'])->name('vendors.restore');
+
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
 });
 
@@ -80,10 +88,15 @@ Route::prefix('portal/{token}')->name('public.')->group(function () {
 
     Route::middleware('public.contract')->group(function () {
         Route::get('/contrato', [PublicContractController::class, 'show'])->name('show');
+        Route::post('/tasks', [PublicContractController::class, 'storeTask'])->name('tasks.store');
         Route::patch('/tasks/{task}/status', [PublicContractController::class, 'updateTaskStatus'])->name('tasks.status');
         Route::put('/tasks/{task}', [PublicContractController::class, 'updateTask'])->name('tasks.update');
+        Route::delete('/tasks/{task}', [PublicContractController::class, 'destroyTask'])->name('tasks.destroy');
         Route::post('/documents', [PublicContractController::class, 'storeDocument'])->name('documents.store');
         Route::get('/documents/{document}/download', [PublicContractController::class, 'downloadDocument'])->name('documents.download');
+        Route::post('/vendors', [PublicContractController::class, 'storeVendor'])->name('vendors.store');
+        Route::put('/vendors/{vendor}', [PublicContractController::class, 'updateVendor'])->name('vendors.update');
+        Route::delete('/vendors/{vendor}', [PublicContractController::class, 'destroyVendor'])->name('vendors.destroy');
     });
 });
 

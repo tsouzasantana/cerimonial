@@ -1,7 +1,8 @@
 @php
-    // $documentTypes, and one of $clientId / $contractId must be provided by the including view.
+    // $documentTypes, and one of $clientId / $contractId / $vendorId must be provided by the including view.
     $clientId = $clientId ?? null;
     $contractId = $contractId ?? null;
+    $vendorId = $vendorId ?? null;
     $formAction = $formAction ?? route('documents.store');
 @endphp
 
@@ -13,6 +14,9 @@
     @endif
     @if ($contractId)
         <input type="hidden" name="contract_id" value="{{ $contractId }}">
+    @endif
+    @if ($vendorId)
+        <input type="hidden" name="vendor_id" value="{{ $vendorId }}">
     @endif
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
