@@ -60,9 +60,28 @@ compartilhada (cPanel) com banco de dados **MySQL**.
   documentos já existentes. O link pode ser regenerado a qualquer momento
   pela tela do contrato, invalidando o anterior.
 - **Relatórios**: dashboard gerencial com indicadores financeiros (recebido,
-  a receber, parcelas em atraso), de contratos (por status, novos por mês,
+  a receber, parcelas em atraso, **fluxo de caixa projetado para os próximos
+  6 meses** com total acumulado), de contratos (por status, novos por mês,
   próximos eventos), de checklist (tarefas atrasadas, taxa de conclusão) e
   de clientes (novos cadastros por mês).
+- **Parcelas em lote**: além de lançar parcelas uma a uma, é possível gerar
+  várias de uma vez informando valor total, quantidade, primeiro vencimento
+  e intervalo em meses — o sistema divide o valor igualmente (ajustando
+  centavos de arredondamento na última parcela) e continua a numeração a
+  partir da última parcela existente.
+- **Calendário de eventos**: visão mensal (sem dependência de biblioteca de
+  calendário) com a data de evento de cada contrato, navegação entre meses e
+  link direto para o contrato.
+- **Auditoria**: toda criação, edição, inativação e restauração de contratos,
+  tarefas do checklist, fornecedores, parcelas, ocorrências, documentos e
+  clientes fica registrada (quem fez — equipe ou cliente pelo portal público
+  — e o que mudou), disponível na aba "Atividades" de cada contrato e numa
+  página global de Auditoria com filtros por contrato, autor, ação e período.
+  Contratos, tarefas do checklist e fornecedores também exibem quem fez a
+  última atualização diretamente na tela.
+- **Notificação de atividade do cliente**: sempre que o cliente altera algo
+  pelo portal público (checklist, fornecedores ou documentos), a equipe
+  recebe um e-mail com o resumo da alteração.
 - **Usuário único**: sistema pensado para um único usuário administrador (sem
   tela pública de cadastro); crie outros usuários manualmente se precisar.
 
@@ -119,6 +138,9 @@ O seeder cria:
    - `MAIL_*` com os dados de SMTP fornecidos pelo cPanel (ou outro provedor de e-mail).
    - `ADMIN_*` com os dados do usuário administrador antes de rodar o seeder.
    - `COMPANY_*` com os dados da empresa exibidos no PDF do contrato.
+     `COMPANY_EMAIL` também é usado como destinatário das notificações de
+     atividade do cliente; se ficar em branco, a notificação é enviada para
+     o e-mail de todos os usuários administradores cadastrados.
 5. **Migrações e usuário admin**:
    ```bash
    php artisan migrate --force
