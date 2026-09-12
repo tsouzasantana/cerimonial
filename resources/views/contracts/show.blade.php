@@ -197,49 +197,8 @@
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Documentos do contrato</h3>
 
-                <form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4 items-end">
-                    @csrf
-                    <input type="hidden" name="contract_id" value="{{ $contract->id }}">
-                    <div>
-                        <x-input-label for="doc_title" value="Título" />
-                        <x-text-input id="doc_title" name="title" type="text" class="mt-1 block w-full" required />
-                    </div>
-                    <div>
-                        <x-input-label for="doc_category" value="Categoria" />
-                        <select id="doc_category" name="category" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                            @foreach ($documentCategories as $value => $label)
-                                <option value="{{ $value }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <x-input-label for="doc_file" value="Arquivo" />
-                        <input id="doc_file" name="file" type="file" class="mt-1 block w-full text-sm" required>
-                    </div>
-                    <div>
-                        <x-primary-button type="submit">Enviar</x-primary-button>
-                    </div>
-                </form>
-
-                @if ($contract->documents->isEmpty())
-                    <p class="text-sm text-gray-500">Nenhum documento enviado.</p>
-                @else
-                    <ul class="divide-y divide-gray-100">
-                        @foreach ($contract->documents as $document)
-                            <li class="py-2 flex justify-between items-center">
-                                <div>
-                                    <a href="{{ route('documents.download', $document) }}" class="text-indigo-600 hover:text-indigo-800">{{ $document->title }}</a>
-                                    <span class="text-xs text-gray-500">({{ $documentCategories[$document->category] ?? $document->category }})</span>
-                                </div>
-                                <form method="POST" action="{{ route('documents.destroy', $document) }}" onsubmit="return confirm('Inativar este documento?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Inativar</button>
-                                </form>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
+                @include('documents._form', ['contractId' => $contract->id, 'documentTypes' => $documentTypes])
+                @include('documents._list', ['documents' => $contract->documents])
             </div>
 
             {{-- Ocorrências / histórico --}}

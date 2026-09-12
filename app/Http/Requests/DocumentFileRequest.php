@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\DocumentFile;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class DocumentFileRequest extends FormRequest
 {
@@ -17,10 +15,19 @@ class DocumentFileRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'category' => ['required', Rule::in(array_keys(DocumentFile::categoryOptions()))],
+            'document_type_id' => ['required', 'exists:document_types,id'],
             'client_id' => ['nullable', 'exists:clients,id'],
             'contract_id' => ['nullable', 'exists:contracts,id'],
-            'file' => ['required', 'file', 'max:20480'],
+            'file' => ['required_without:url', 'nullable', 'file', 'max:20480'],
+            'url' => ['required_without:file', 'nullable', 'url', 'max:2048'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'file.required_without' => 'Envie um arquivo ou informe um link de documento na nuvem.',
+            'url.required_without' => 'Envie um arquivo ou informe um link de documento na nuvem.',
         ];
     }
 }

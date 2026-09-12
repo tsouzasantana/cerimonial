@@ -6,7 +6,7 @@ use App\Http\Requests\ContractRequest;
 use App\Mail\ContractPdfMail;
 use App\Models\Client;
 use App\Models\Contract;
-use App\Models\DocumentFile;
+use App\Models\DocumentType;
 use App\Models\Installment;
 use App\Models\OccurrenceType;
 use App\Models\Service;
@@ -66,7 +66,7 @@ class ContractController extends Controller
             'client',
             'items.service',
             'installments' => fn ($q) => $q->orderBy('number'),
-            'documents',
+            'documents.documentType',
             'occurrences' => fn ($q) => $q->with('type')->orderByDesc('occurrence_date'),
         ]);
 
@@ -74,7 +74,7 @@ class ContractController extends Controller
         $occurrenceTypes = OccurrenceType::orderBy('name')->get();
         $paymentMethods = Installment::paymentMethodOptions();
         $installmentStatuses = Installment::statusOptions();
-        $documentCategories = DocumentFile::categoryOptions();
+        $documentTypes = DocumentType::orderBy('name')->get();
 
         return view('contracts.show', compact(
             'contract',
@@ -82,7 +82,7 @@ class ContractController extends Controller
             'occurrenceTypes',
             'paymentMethods',
             'installmentStatuses',
-            'documentCategories',
+            'documentTypes',
         ));
     }
 

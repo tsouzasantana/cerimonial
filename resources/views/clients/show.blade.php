@@ -57,49 +57,8 @@
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Documentos do cliente</h3>
 
-                <form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4 items-end">
-                    @csrf
-                    <input type="hidden" name="client_id" value="{{ $client->id }}">
-                    <div>
-                        <x-input-label for="title" value="Título" />
-                        <x-text-input id="title" name="title" type="text" class="mt-1 block w-full" required />
-                    </div>
-                    <div>
-                        <x-input-label for="category" value="Categoria" />
-                        <select id="category" name="category" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                            @foreach (\App\Models\DocumentFile::categoryOptions() as $value => $label)
-                                <option value="{{ $value }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <x-input-label for="file" value="Arquivo" />
-                        <input id="file" name="file" type="file" class="mt-1 block w-full text-sm" required>
-                    </div>
-                    <div>
-                        <x-primary-button type="submit">Enviar</x-primary-button>
-                    </div>
-                </form>
-
-                @if ($client->documents->isEmpty())
-                    <p class="text-sm text-gray-500">Nenhum documento enviado.</p>
-                @else
-                    <ul class="divide-y divide-gray-100">
-                        @foreach ($client->documents as $document)
-                            <li class="py-2 flex justify-between items-center">
-                                <div>
-                                    <a href="{{ route('documents.download', $document) }}" class="text-indigo-600 hover:text-indigo-800">{{ $document->title }}</a>
-                                    <span class="text-xs text-gray-500">({{ \App\Models\DocumentFile::categoryOptions()[$document->category] ?? $document->category }})</span>
-                                </div>
-                                <form method="POST" action="{{ route('documents.destroy', $document) }}" onsubmit="return confirm('Inativar este documento?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Inativar</button>
-                                </form>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
+                @include('documents._form', ['clientId' => $client->id, 'documentTypes' => $documentTypes])
+                @include('documents._list', ['documents' => $client->documents])
             </div>
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">

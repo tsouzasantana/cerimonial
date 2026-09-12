@@ -1,6 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Documentos</h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Documentos</h2>
+            <a href="{{ route('document-types.index') }}" class="text-sm text-indigo-600 hover:text-indigo-800">Gerenciar tipos de documento</a>
+        </div>
     </x-slot>
 
     <div class="py-12">
@@ -8,10 +11,10 @@
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <form method="GET" class="flex flex-wrap items-center gap-3 mb-4">
                     <x-text-input name="search" type="text" placeholder="Buscar por título" class="max-w-sm" :value="request('search')" />
-                    <select name="category" class="border-gray-300 rounded-md shadow-sm text-sm" onchange="this.form.submit()">
-                        <option value="">Todas as categorias</option>
-                        @foreach ($categories as $value => $label)
-                            <option value="{{ $value }}" @selected(request('category') === $value)>{{ $label }}</option>
+                    <select name="document_type_id" class="border-gray-300 rounded-md shadow-sm text-sm" onchange="this.form.submit()">
+                        <option value="">Todos os tipos</option>
+                        @foreach ($documentTypes as $type)
+                            <option value="{{ $type->id }}" @selected(request('document_type_id') == $type->id)>{{ $type->name }}</option>
                         @endforeach
                     </select>
                     <label class="flex items-center gap-2 text-sm text-gray-600">
@@ -25,7 +28,7 @@
                     <thead>
                         <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             <th class="py-2 pr-3">Título</th>
-                            <th class="py-2 pr-3">Categoria</th>
+                            <th class="py-2 pr-3">Tipo</th>
                             <th class="py-2 pr-3">Vinculado a</th>
                             <th class="py-2 pr-3">Enviado em</th>
                             <th class="py-2 pr-3 text-right">Ações</th>
@@ -35,9 +38,13 @@
                         @forelse ($documents as $document)
                             <tr>
                                 <td class="py-2 pr-3">
-                                    <a href="{{ route('documents.download', $document) }}" class="text-indigo-600 hover:text-indigo-800 font-medium">{{ $document->title }}</a>
+                                    @if ($document->isLink())
+                                        <a href="{{ $document->url }}" target="_blank" rel="noopener" class="text-indigo-600 hover:text-indigo-800 font-medium">{{ $document->title }} ↗</a>
+                                    @else
+                                        <a href="{{ route('documents.download', $document) }}" class="text-indigo-600 hover:text-indigo-800 font-medium">{{ $document->title }}</a>
+                                    @endif
                                 </td>
-                                <td class="py-2 pr-3 text-gray-600">{{ $categories[$document->category] ?? $document->category }}</td>
+                                <td class="py-2 pr-3 text-gray-600">{{ $document->documentType->name }}</td>
                                 <td class="py-2 pr-3 text-gray-600">
                                     @if ($document->contract)
                                         <a href="{{ route('contracts.show', $document->contract) }}" class="hover:text-indigo-800">Contrato #{{ $document->contract->id }}</a>

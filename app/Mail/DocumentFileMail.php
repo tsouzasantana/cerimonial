@@ -33,6 +33,10 @@ class DocumentFileMail extends Mailable
 
     public function attachments(): array
     {
+        if ($this->document->isLink()) {
+            return [];
+        }
+
         return [
             Attachment::fromStorageDisk('local', $this->document->path)
                 ->as($this->document->original_filename)

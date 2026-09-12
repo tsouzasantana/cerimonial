@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\DocumentFile;
+use App\Models\DocumentType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -17,16 +18,49 @@ class DocumentInactivationTest extends TestCase
     {
         Storage::fake('local');
         $user = User::factory()->create();
+        $type = DocumentType::factory()->create();
 
         $response = $this->actingAs($user)->post(route('documents.store'), [
             'title' => 'RG do cliente',
-            'category' => 'documento_pessoal',
+            'document_type_id' => $type->id,
             'file' => UploadedFile::fake()->create('rg.pdf', 10),
         ]);
 
         $response->assertRedirect();
         $document = DocumentFile::first();
         Storage::disk('local')->assertExists($document->path);
+        $this->assertFalse($document->isLink());
+    }
+
+    public function test_uploading_a_document_as_a_cloud_link_does_not_require_a_file(): void
+    {
+        $user = User::factory()->create();
+        $type = DocumentType::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('documents.store'), [
+            'title' => 'Moodboard da decoração',
+            'document_type_id' => $type->id,
+            'url' => 'https://drive.google.com/some-folder',
+        ]);
+
+        $response->assertRedirect();
+        $document = DocumentFile::first();
+        $this->assertTrue($document->isLink());
+        $this->assertNull($document->path);
+    }
+
+    public function test_document_requires_either_a_file_or_a_url(): void
+    {
+        $user = User::factory()->create();
+        $type = DocumentType::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('documents.store'), [
+            'title' => 'Documento sem anexo',
+            'document_type_id' => $type->id,
+        ]);
+
+        $response->assertSessionHasErrors(['file', 'url']);
+        $this->assertSame(0, DocumentFile::count());
     }
 
     public function test_deleting_a_document_soft_deletes_it_instead_of_removing_the_file(): void

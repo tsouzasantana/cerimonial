@@ -11,24 +11,15 @@ class DocumentFile extends Model
 {
     use HasFactory, SoftDeletes;
 
-    public static function categoryOptions(): array
-    {
-        return [
-            'contrato_assinado' => 'Contrato assinado',
-            'documento_pessoal' => 'Documento pessoal',
-            'comprovante_pagamento' => 'Comprovante de pagamento',
-            'outro' => 'Outro',
-        ];
-    }
-
     protected $fillable = [
         'client_id',
         'contract_id',
         'uploaded_by',
+        'document_type_id',
         'title',
-        'category',
         'original_filename',
         'path',
+        'url',
         'mime_type',
         'size',
     ];
@@ -46,5 +37,15 @@ class DocumentFile extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function documentType(): BelongsTo
+    {
+        return $this->belongsTo(DocumentType::class);
+    }
+
+    public function isLink(): bool
+    {
+        return ! empty($this->url);
     }
 }

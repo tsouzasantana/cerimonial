@@ -20,9 +20,12 @@ compartilhada (cPanel) com banco de dados **MySQL**.
 - **Ocorrências**: histórico do andamento do contrato (ex: "Orçamento
   enviado", "Contrato assinado"); cada tipo pode alterar automaticamente o
   status do contrato ao ser registrado.
-- **Documentos**: upload vinculado a cliente e/ou contrato. Ao "excluir" um
-  documento ele é apenas **inativado** (soft delete) e pode ser recuperado
-  depois — o arquivo nunca é apagado do disco.
+- **Documentos**: upload de arquivo **ou** link de documento na nuvem (Google
+  Drive, Dropbox etc.), vinculado a cliente e/ou contrato, organizado por
+  **tipo configurável** (contrato assinado, documento pessoal, inspiração,
+  contrato de outro fornecedor, etc. — editável em Configurações → Tipos de
+  Documento). Ao "excluir" um documento ele é apenas **inativado** (soft
+  delete) e pode ser recuperado depois — o arquivo nunca é apagado do disco.
 - **PDF do contrato**: gera a minuta do contrato padrão em PDF (via
   `barryvdh/laravel-dompdf`, 100% PHP — não exige nenhum binário extra,
   funciona em hospedagem compartilhada) para impressão e assinatura fora do
@@ -127,6 +130,7 @@ php artisan test
 | `contracts` | Contratos, com subtotal/desconto/total recalculados a partir dos itens |
 | `contract_items` | Itens (serviços) de cada contrato |
 | `installments` | Parcelas de pagamento de cada contrato |
-| `document_files` | Documentos anexados a clientes/contratos (soft delete) |
+| `document_types` | Tipos de documento configuráveis (contrato assinado, inspiração, contrato de fornecedor etc.) |
+| `document_files` | Documentos anexados a clientes/contratos — upload de arquivo OU link na nuvem (soft delete) |
 | `occurrence_types` | Tipos de ocorrência configuráveis, podendo alterar o status do contrato |
 | `occurrences` | Histórico de ocorrências de cada contrato |

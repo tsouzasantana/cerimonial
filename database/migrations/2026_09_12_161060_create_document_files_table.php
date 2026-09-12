@@ -13,10 +13,11 @@ return new class extends Migration
             $table->foreignId('client_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('contract_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('uploaded_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('document_type_id')->constrained()->restrictOnDelete();
             $table->string('title');
-            $table->string('category')->default('outro');
-            $table->string('original_filename');
-            $table->string('path');
+            $table->string('original_filename')->nullable();
+            $table->string('path')->nullable();
+            $table->string('url')->nullable()->comment('link para documento na nuvem, alternativa ao upload de arquivo');
             $table->string('mime_type')->nullable();
             $table->unsignedBigInteger('size')->default(0);
             $table->timestamps();

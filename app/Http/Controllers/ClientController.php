@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ClientRequest;
 use App\Models\Client;
+use App\Models\DocumentType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -42,9 +43,14 @@ class ClientController extends Controller
 
     public function show(Client $client): View
     {
-        $client->load(['contracts' => fn ($q) => $q->orderByDesc('event_date'), 'documents']);
+        $client->load([
+            'contracts' => fn ($q) => $q->orderByDesc('event_date'),
+            'documents.documentType',
+        ]);
 
-        return view('clients.show', compact('client'));
+        $documentTypes = DocumentType::orderBy('name')->get();
+
+        return view('clients.show', compact('client', 'documentTypes'));
     }
 
     public function edit(Client $client): View

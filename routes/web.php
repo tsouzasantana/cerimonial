@@ -5,6 +5,7 @@ use App\Http\Controllers\ContractController;
 use App\Http\Controllers\ContractItemController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentFileController;
+use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\InstallmentController;
 use App\Http\Controllers\OccurrenceController;
 use App\Http\Controllers\OccurrenceTypeController;
@@ -49,6 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::get('contracts/{contract}/occurrences/{occurrence}/attachment', [OccurrenceController::class, 'downloadAttachment'])->name('occurrences.attachment');
 
     Route::resource('occurrence-types', OccurrenceTypeController::class)->except(['show']);
+    Route::resource('document-types', DocumentTypeController::class)->except(['show']);
 
     Route::get('documents', [DocumentFileController::class, 'index'])->name('documents.index');
     Route::post('documents', [DocumentFileController::class, 'store'])->name('documents.store');

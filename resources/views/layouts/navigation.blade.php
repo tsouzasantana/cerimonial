@@ -27,9 +27,31 @@
                     <x-nav-link :href="route('documents.index')" :active="request()->routeIs('documents.*')">
                         {{ __('Documentos') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('occurrence-types.index')" :active="request()->routeIs('occurrence-types.*')">
-                        {{ __('Tipos de Ocorrência') }}
-                    </x-nav-link>
+                    <div class="hidden sm:flex sm:items-center relative" x-data="{ open: false }" @click.outside="open = false">
+                        <button @click="open = ! open" type="button"
+                                class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 focus:outline-none transition duration-150 ease-in-out
+                                {{ request()->routeIs('occurrence-types.*') || request()->routeIs('document-types.*')
+                                    ? 'border-indigo-400 text-gray-900'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                            {{ __('Configurações') }}
+                            <svg class="ms-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+
+                        <div x-show="open" x-transition
+                                class="absolute mt-2 top-full w-56 rounded-md shadow-lg z-50"
+                                style="display: none;" @click="open = false">
+                            <div class="rounded-md ring-1 ring-black ring-opacity-5 bg-white py-1">
+                                <x-dropdown-link :href="route('occurrence-types.index')">
+                                    {{ __('Tipos de Ocorrência') }}
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('document-types.index')">
+                                    {{ __('Tipos de Documento') }}
+                                </x-dropdown-link>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -99,6 +121,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('occurrence-types.index')" :active="request()->routeIs('occurrence-types.*')">
                 {{ __('Tipos de Ocorrência') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('document-types.index')" :active="request()->routeIs('document-types.*')">
+                {{ __('Tipos de Documento') }}
             </x-responsive-nav-link>
         </div>
 

@@ -1,0 +1,33 @@
+@if ($documents->isEmpty())
+    <p class="text-sm text-gray-500">Nenhum documento cadastrado.</p>
+@else
+    <ul class="divide-y divide-gray-100">
+        @foreach ($documents as $document)
+            <li class="py-2 flex justify-between items-center gap-3">
+                <div class="min-w-0">
+                    @if ($document->isLink())
+                        <a href="{{ $document->url }}" target="_blank" rel="noopener" class="text-indigo-600 hover:text-indigo-800">
+                            {{ $document->title }} ↗
+                        </a>
+                    @else
+                        <a href="{{ route('documents.download', $document) }}" class="text-indigo-600 hover:text-indigo-800">
+                            {{ $document->title }}
+                        </a>
+                    @endif
+                    <span class="text-xs text-gray-500">({{ $document->documentType->name }})</span>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                    <form method="POST" action="{{ route('documents.send-email', $document) }}">
+                        @csrf
+                        <button type="submit" class="text-indigo-600 hover:text-indigo-800 text-sm">Enviar e-mail</button>
+                    </form>
+                    <form method="POST" action="{{ route('documents.destroy', $document) }}" onsubmit="return confirm('Inativar este documento?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Inativar</button>
+                    </form>
+                </div>
+            </li>
+        @endforeach
+    </ul>
+@endif
