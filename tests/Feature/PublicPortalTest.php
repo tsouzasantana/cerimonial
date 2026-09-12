@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\ClientActivityMail;
 use App\Models\Client;
 use App\Models\Contract;
 use App\Models\ContractTask;
@@ -12,6 +13,7 @@ use App\Models\Vendor;
 use App\Models\VendorServiceType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -236,6 +238,38 @@ class PublicPortalTest extends TestCase
             ->assertRedirect();
 
         $this->assertSoftDeleted($vendor);
+    }
+
+    public function test_staff_is_notified_by_email_when_client_changes_something(): void
+    {
+        Mail::fake();
+        $staff = User::factory()->create();
+        $contract = $this->contractWithClientCpf();
+        $this->post(route('public.verify', $contract->public_token), ['document' => $contract->client->document]);
+
+        $this->post(route('public.tasks.store', $contract->public_token), [
+            'name' => 'Tarefa criada pelo cliente',
+            'due_date' => now()->addDays(5)->format('Y-m-d'),
+        ])->assertRedirect();
+
+        Mail::assertSent(ClientActivityMail::class, function (ClientActivityMail $mail) use ($contract, $staff) {
+            return $mail->log->contract_id === $contract->id
+                && $mail->hasTo($staff->email);
+        });
+    }
+
+    public function test_admin_actions_do_not_trigger_client_activity_notification(): void
+    {
+        Mail::fake();
+        $user = User::factory()->create();
+        $contract = $this->contractWithClientCpf();
+
+        $this->actingAs($user)->post(route('contract-tasks.store', $contract), [
+            'name' => 'Tarefa criada pelo admin',
+            'due_date' => now()->addDays(5)->format('Y-m-d'),
+        ])->assertRedirect();
+
+        Mail::assertNotSent(ClientActivityMail::class);
     }
 
     public function test_client_cannot_attach_a_document_to_a_vendor_from_another_contract(): void

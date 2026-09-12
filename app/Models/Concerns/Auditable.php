@@ -2,9 +2,13 @@
 
 namespace App\Models\Concerns;
 
+use App\Mail\ClientActivityMail;
 use App\Models\AuditLog;
 use App\Models\Contract;
+use App\Models\User;
 use App\Support\ActorResolver;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Records a row in audit_logs whenever the model is created, updated,
@@ -27,8 +31,13 @@ trait Auditable
     protected function writeAuditLog(string $action): void
     {
         $actor = ActorResolver::current();
+        $changes = $action === 'updated' ? $this->auditableChanges() : null;
 
-        AuditLog::create([
+        if ($action === 'updated' && $changes === []) {
+            return;
+        }
+
+        $log = AuditLog::create([
             'contract_id' => $this->auditContractId(),
             'auditable_type' => static::class,
             'auditable_id' => $this->getKey(),
@@ -36,8 +45,30 @@ trait Auditable
             'action' => $action,
             'actor_type' => $actor['type'],
             'actor_name' => $actor['name'],
-            'changes' => $action === 'updated' ? $this->auditableChanges() : null,
+            'changes' => $changes,
         ]);
+
+        if ($actor['type'] === 'client' && $log->contract_id) {
+            $this->notifyStaffOfClientActivity($log);
+        }
+    }
+
+    protected function notifyStaffOfClientActivity(AuditLog $log): void
+    {
+        $recipients = config('cerimonial.company_email')
+            ? [config('cerimonial.company_email')]
+            : User::pluck('email')->all();
+
+        if ($recipients === []) {
+            return;
+        }
+
+        try {
+            $log->loadMissing('contract.client');
+            Mail::to($recipients)->send(new ClientActivityMail($log));
+        } catch (\Throwable $e) {
+            Log::warning('Falha ao enviar notificação de atividade do cliente: '.$e->getMessage());
+        }
     }
 
     protected function auditableChanges(): array
