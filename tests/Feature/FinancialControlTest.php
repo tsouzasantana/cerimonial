@@ -4,12 +4,16 @@ namespace Tests\Feature;
 
 use App\Models\Client;
 use App\Models\Contract;
+use App\Models\DocumentType;
 use App\Models\FinancialEntry;
 use App\Models\Installment;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorInstallment;
+use App\Models\VendorServiceType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\ViewErrorBag;
 use Tests\TestCase;
 
 class FinancialControlTest extends TestCase
@@ -73,6 +77,36 @@ class FinancialControlTest extends TestCase
         $installments = $vendor->installments()->orderBy('number')->get();
         $this->assertCount(3, $installments);
         $this->assertEquals('300.00', $installments[0]->amount);
+    }
+
+    public function test_a_validation_error_on_vendor_installment_is_shown_and_expands_the_section(): void
+    {
+        // Renders the partial directly instead of a real POST + GET: the
+        // "array" session driver used in tests doesn't carry flashed
+        // errors/old input across separate requests the way the database
+        // driver does in production, so a redirect-back round trip can't be
+        // exercised here. This isolates exactly what matters — that the
+        // Blade conditionals correctly show the error and expand the
+        // section — from that testing-only session limitation.
+        $vendor = Vendor::factory()->create();
+
+        $session = app('session.store');
+        $session->put('_old_input', ['_vendor_id' => (string) $vendor->id]);
+        app('request')->setLaravelSession($session);
+
+        $errors = new ViewErrorBag;
+        $errors->put('default', new MessageBag(['amount' => ['O campo valor é obrigatório.']]));
+
+        $html = view('contracts._vendors', [
+            'contract' => $vendor->contract,
+            'isPublic' => false,
+            'documentTypes' => DocumentType::all(),
+            'vendorServiceTypes' => VendorServiceType::all(),
+            'errors' => $errors,
+        ])->render();
+
+        $this->assertStringContainsString('showInstallments: true', $html);
+        $this->assertStringContainsString('O campo valor é obrigatório.', $html);
     }
 
     public function test_vendor_installment_from_another_contract_is_rejected(): void

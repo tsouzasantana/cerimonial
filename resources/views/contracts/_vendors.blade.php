@@ -96,7 +96,12 @@
                     <p class="mt-2 text-sm text-gray-600">{{ $vendor->notes }}</p>
                 @endif
 
-                <div class="mt-3 border-t pt-3" x-data="{ showInstallments: false }">
+                @php
+                    $vendorSubmittedThis = old('_vendor_id') == $vendor->id;
+                    $hasInstallmentErrors = $vendorSubmittedThis && $errors->hasAny(['number', 'amount', 'due_date']);
+                    $hasBatchErrors = $vendorSubmittedThis && $errors->hasAny(['total_amount', 'installment_count', 'first_due_date', 'interval_months']);
+                @endphp
+                <div class="mt-3 border-t pt-3" x-data="{ showInstallments: {{ ($hasInstallmentErrors || $hasBatchErrors) ? 'true' : 'false' }} }">
                     <button type="button" class="text-sm text-brand-600 hover:text-brand-800" x-on:click="showInstallments = ! showInstallments">
                         Parcelas do fornecedor ({{ $vendor->installments->count() }})
                     </button>
@@ -151,43 +156,66 @@
 
                         <form method="POST" action="{{ $installmentStoreUrl($vendor) }}" class="flex flex-wrap items-end gap-3">
                             @csrf
+                            <input type="hidden" name="_vendor_id" value="{{ $vendor->id }}">
                             <div>
                                 <x-input-label for="vendor-{{ $vendor->id }}-installment-number" value="Parcela nº" />
                                 <x-text-input id="vendor-{{ $vendor->id }}-installment-number" name="number" type="number" min="1" class="mt-1 block w-20" required />
+                                @if ($hasInstallmentErrors)
+                                    <x-input-error :messages="$errors->get('number')" class="mt-2" />
+                                @endif
                             </div>
                             <div>
                                 <x-input-label for="vendor-{{ $vendor->id }}-installment-amount" value="Valor" />
                                 <x-currency-input name="amount" class="mt-1 block w-32" required />
+                                @if ($hasInstallmentErrors)
+                                    <x-input-error :messages="$errors->get('amount')" class="mt-2" />
+                                @endif
                             </div>
                             <div>
                                 <x-input-label for="vendor-{{ $vendor->id }}-installment-due_date" value="Vencimento" />
                                 <x-text-input id="vendor-{{ $vendor->id }}-installment-due_date" name="due_date" type="date" class="mt-1 block w-40" required />
+                                @if ($hasInstallmentErrors)
+                                    <x-input-error :messages="$errors->get('due_date')" class="mt-2" />
+                                @endif
                             </div>
                             <x-secondary-button type="submit">Adicionar parcela</x-secondary-button>
                         </form>
 
-                        <div class="mt-3" x-data="{ openBatch: false }">
+                        <div class="mt-3" x-data="{ openBatch: {{ $hasBatchErrors ? 'true' : 'false' }} }">
                             <button type="button" class="text-sm text-brand-600 hover:text-brand-800" x-on:click="openBatch = ! openBatch">
                                 Gerar parcelas em lote
                             </button>
                             <form x-show="openBatch" x-cloak method="POST" action="{{ $installmentBatchUrl($vendor) }}"
                                     class="mt-3 flex flex-wrap items-end gap-3" onsubmit="return confirm('Gerar as parcelas informadas?');">
                                 @csrf
+                                <input type="hidden" name="_vendor_id" value="{{ $vendor->id }}">
                                 <div>
                                     <x-input-label for="vendor-{{ $vendor->id }}-total_amount" value="Valor total" />
                                     <x-currency-input name="total_amount" class="mt-1 block w-32" required />
+                                    @if ($hasBatchErrors)
+                                        <x-input-error :messages="$errors->get('total_amount')" class="mt-2" />
+                                    @endif
                                 </div>
                                 <div>
                                     <x-input-label for="vendor-{{ $vendor->id }}-installment_count" value="Qtde de parcelas" />
                                     <x-text-input id="vendor-{{ $vendor->id }}-installment_count" name="installment_count" type="number" min="1" max="60" class="mt-1 block w-28" required />
+                                    @if ($hasBatchErrors)
+                                        <x-input-error :messages="$errors->get('installment_count')" class="mt-2" />
+                                    @endif
                                 </div>
                                 <div>
                                     <x-input-label for="vendor-{{ $vendor->id }}-first_due_date" value="1º vencimento" />
                                     <x-text-input id="vendor-{{ $vendor->id }}-first_due_date" name="first_due_date" type="date" class="mt-1 block w-40" required />
+                                    @if ($hasBatchErrors)
+                                        <x-input-error :messages="$errors->get('first_due_date')" class="mt-2" />
+                                    @endif
                                 </div>
                                 <div>
                                     <x-input-label for="vendor-{{ $vendor->id }}-interval_months" value="Intervalo (meses)" />
                                     <x-text-input id="vendor-{{ $vendor->id }}-interval_months" name="interval_months" type="number" min="1" max="12" value="1" class="mt-1 block w-24" required />
+                                    @if ($hasBatchErrors)
+                                        <x-input-error :messages="$errors->get('interval_months')" class="mt-2" />
+                                    @endif
                                 </div>
                                 <x-secondary-button type="submit">Gerar parcelas</x-secondary-button>
                             </form>
