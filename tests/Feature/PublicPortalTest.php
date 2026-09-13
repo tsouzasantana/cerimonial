@@ -243,14 +243,12 @@ class PublicPortalTest extends TestCase
         $this->put(route('public.vendors.update', [$contract->public_token, $vendor]), [
             'name' => 'Tentando trocar o nome',
             'status' => Vendor::STATUS_PRESTADO,
-            'payment_status' => Vendor::PAYMENT_PARCIAL,
             'notes' => 'Atualizado pelo cliente',
         ])->assertRedirect();
 
         $vendor->refresh();
         $this->assertSame('Nome original', $vendor->name);
         $this->assertSame(Vendor::STATUS_PRESTADO, $vendor->status);
-        $this->assertSame(Vendor::PAYMENT_PARCIAL, $vendor->payment_status);
     }
 
     public function test_verified_client_can_inactivate_a_vendor(): void

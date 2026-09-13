@@ -39,6 +39,12 @@ class VendorInstallment extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(fn (self $installment) => $installment->vendor?->recalculatePaymentStatus());
+        static::deleted(fn (self $installment) => $installment->vendor?->recalculatePaymentStatus());
+    }
+
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);

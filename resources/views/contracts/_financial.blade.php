@@ -15,12 +15,14 @@
         ? route('public.financial-entries.destroy', ['token' => $token, 'financialEntry' => $entry])
         : route('financial-entries.destroy', [$contract, $entry]);
 
+    $companyName = config('cerimonial.company_name', 'Assessoria');
+
     $rows = $contract->financialEntries
         ->map(fn ($entry) => [
             'source' => 'entry',
             'model' => $entry,
             'description' => $entry->description,
-            'vendor' => $entry->vendor,
+            'origin' => $entry->vendor?->name ?? 'Gasto geral',
             'due_date' => $entry->due_date,
             'amount' => $entry->amount,
             'status' => $entry->status,
@@ -31,12 +33,24 @@
                 'source' => 'vendor_installment',
                 'model' => $installment,
                 'description' => "Parcela nº {$installment->number}",
-                'vendor' => $vendor,
+                'origin' => $vendor->name,
                 'due_date' => $installment->due_date,
                 'amount' => $installment->amount,
                 'status' => $installment->status,
                 'paid_at' => $installment->paid_at,
             ]))
+        )
+        ->concat(
+            $contract->installments->map(fn ($installment) => [
+                'source' => 'contract_installment',
+                'model' => $installment,
+                'description' => "Parcela nº {$installment->number}",
+                'origin' => $companyName,
+                'due_date' => $installment->due_date,
+                'amount' => $installment->amount,
+                'status' => $installment->status,
+                'paid_at' => $installment->paid_at,
+            ])
         )
         ->sortBy(fn ($row) => $row['due_date']?->format('Y-m-d') ?? '9999-99-99')
         ->values();
@@ -66,7 +80,7 @@
         <thead>
             <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <th class="py-2 pr-3">Descrição</th>
-                <th class="py-2 pr-3">Fornecedor</th>
+                <th class="py-2 pr-3">Fornecedor / Origem</th>
                 <th class="py-2 pr-3">Vencimento</th>
                 <th class="py-2 pr-3">Valor</th>
                 <th class="py-2 pr-3">Status</th>
@@ -78,7 +92,7 @@
             @forelse ($rows as $row)
                 <tr>
                     <td class="py-2 pr-3">{{ $row['description'] }}</td>
-                    <td class="py-2 pr-3">{{ $row['vendor']?->name ?? '—' }}</td>
+                    <td class="py-2 pr-3">{{ $row['origin'] }}</td>
                     <td class="py-2 pr-3">{{ $row['due_date']?->format('d/m/Y') ?? '—' }}</td>
                     <td class="py-2 pr-3">R$ {{ number_format($row['amount'], 2, ',', '.') }}</td>
                     <td class="py-2 pr-3">
@@ -93,8 +107,10 @@
                                 @method('DELETE')
                                 <button type="submit" class="text-red-600 hover:text-red-800 text-xs ml-2">Inativar</button>
                             </form>
-                        @else
+                        @elseif ($row['source'] === 'vendor_installment')
                             <span class="text-xs text-gray-400">Ver na aba Fornecedores</span>
+                        @else
+                            <span class="text-xs text-gray-400">Ver na aba Serviços e pagamentos</span>
                         @endif
                     </td>
                 </tr>

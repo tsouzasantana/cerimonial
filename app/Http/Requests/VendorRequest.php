@@ -24,7 +24,6 @@ class VendorRequest extends FormRequest
             'new_service_type' => ['required_without:vendor_service_type_id', 'nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
             'status' => ['required', Rule::in(array_keys(Vendor::statusOptions()))],
-            'payment_status' => ['required', Rule::in(array_keys(Vendor::paymentStatusOptions()))],
         ];
     }
 

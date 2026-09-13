@@ -17,7 +17,6 @@ class PublicVendorUpdateRequest extends FormRequest
     {
         return [
             'status' => ['required', Rule::in(array_keys(Vendor::statusOptions()))],
-            'payment_status' => ['required', Rule::in(array_keys(Vendor::paymentStatusOptions()))],
             'notes' => ['nullable', 'string'],
         ];
     }

@@ -227,12 +227,13 @@ class FinancialControlTest extends TestCase
         $this->assertNotNull($entry->fresh()->paid_at);
     }
 
-    public function test_financial_control_tab_shows_vendor_installments_and_manual_entries(): void
+    public function test_financial_control_tab_shows_vendor_installments_manual_entries_and_contract_installments(): void
     {
         $user = User::factory()->create();
         $vendor = Vendor::factory()->create(['name' => 'Buffet da Serra']);
         VendorInstallment::factory()->create(['vendor_id' => $vendor->id, 'amount' => 777]);
         FinancialEntry::factory()->create(['contract_id' => $vendor->contract_id, 'description' => 'Aluguel de mesas']);
+        Installment::factory()->create(['contract_id' => $vendor->contract_id, 'number' => 1, 'amount' => 1500]);
 
         $response = $this->actingAs($user)->get(route('contracts.show', ['contract' => $vendor->contract, 'tab' => 'financeiro']));
 
@@ -240,6 +241,35 @@ class FinancialControlTest extends TestCase
         $response->assertSee('Buffet da Serra');
         $response->assertSee('777,00');
         $response->assertSee('Aluguel de mesas');
+        $response->assertSee('1.500,00');
+        $response->assertSee(config('cerimonial.company_name', 'Assessoria'));
+    }
+
+    public function test_financeiro_tab_appears_after_fornecedores_and_before_atividades(): void
+    {
+        $user = User::factory()->create();
+        $contract = Contract::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('contracts.show', $contract));
+
+        $response->assertOk();
+        $content = $response->getContent();
+
+        $this->assertGreaterThan(strpos($content, 'Fornecedores'), strpos($content, 'Controle financeiro'));
+        $this->assertGreaterThan(strpos($content, 'Controle financeiro'), strpos($content, 'Atividades'));
+    }
+
+    public function test_public_portal_shows_financeiro_tab_after_fornecedores(): void
+    {
+        $contract = $this->contractWithClientCpf();
+        $this->post(route('public.verify', $contract->public_token), ['document' => $contract->client->document]);
+
+        $response = $this->get(route('public.show', $contract->public_token));
+
+        $response->assertOk();
+        $content = $response->getContent();
+
+        $this->assertGreaterThan(strpos($content, 'Fornecedores'), strpos($content, 'Controle financeiro'));
     }
 
     public function test_client_can_add_a_vendor_installment_and_a_financial_entry_via_public_portal(): void

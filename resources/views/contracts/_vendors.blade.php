@@ -83,14 +83,12 @@
                             <option value="{{ $value }}" @selected($vendor->status === $value)>{{ $label }}</option>
                         @endforeach
                     </select>
-                    <select name="payment_status" class="border-gray-300 rounded-md shadow-sm text-xs"
-                            data-original-value="{{ $vendor->payment_status }}"
-                            onchange="{{ $isPublic ? "confirmAndSubmit(this, 'Atualizar a situação do pagamento deste fornecedor?')" : 'this.form.submit()' }}">
-                        @foreach (Vendor::paymentStatusOptions() as $value => $label)
-                            <option value="{{ $value }}" @selected($vendor->payment_status === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
                 </form>
+
+                <div class="mt-2">
+                    <x-status-badge :variant="$vendor->paymentStatusBadgeVariant()">{{ Vendor::paymentStatusOptions()[$vendor->payment_status] }}</x-status-badge>
+                    <span class="text-xs text-gray-400 ml-1">(calculado a partir das parcelas pagas)</span>
+                </div>
 
                 @if ($vendor->notes)
                     <p class="mt-2 text-sm text-gray-600">{{ $vendor->notes }}</p>
@@ -297,12 +295,11 @@
                     </div>
 
                     <div>
-                        <x-input-label for="vendor-{{ $vendor->id }}-payment_status" value="Situação do pagamento" />
-                        <select id="vendor-{{ $vendor->id }}-payment_status" name="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                            @foreach (Vendor::paymentStatusOptions() as $value => $label)
-                                <option value="{{ $value }}" @selected($vendor->payment_status === $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
+                        <x-input-label value="Situação do pagamento" />
+                        <p class="mt-1">
+                            <x-status-badge :variant="$vendor->paymentStatusBadgeVariant()">{{ Vendor::paymentStatusOptions()[$vendor->payment_status] }}</x-status-badge>
+                            <span class="text-xs text-gray-400 ml-1">(calculado a partir das parcelas pagas)</span>
+                        </p>
                     </div>
 
                     <div>
@@ -353,14 +350,6 @@
             <x-input-label for="new-vendor-status" value="Status" />
             <select id="new-vendor-status" name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                 @foreach (Vendor::statusOptions() as $value => $label)
-                    <option value="{{ $value }}">{{ $label }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div>
-            <x-input-label for="new-vendor-payment_status" value="Situação do pagamento" />
-            <select id="new-vendor-payment_status" name="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                @foreach (Vendor::paymentStatusOptions() as $value => $label)
                     <option value="{{ $value }}">{{ $label }}</option>
                 @endforeach
             </select>

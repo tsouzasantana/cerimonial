@@ -45,6 +45,15 @@ class Vendor extends Model
         ];
     }
 
+    public function paymentStatusBadgeVariant(): string
+    {
+        return match ($this->payment_status) {
+            self::PAYMENT_INTEGRAL => 'success',
+            self::PAYMENT_PARCIAL => 'warning',
+            default => 'neutral',
+        };
+    }
+
     protected $fillable = [
         'contract_id',
         'vendor_service_type_id',
@@ -63,6 +72,18 @@ class Vendor extends Model
             'document' => 'encrypted',
             'contract_value' => 'decimal:2',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Recompute automatically when contract_value changes, so it stays
+        // in sync without needing a separate save() call (which would
+        // re-trigger this same "saving" event).
+        static::saving(function (self $vendor) {
+            if ($vendor->exists && $vendor->isDirty('contract_value')) {
+                $vendor->payment_status = $vendor->computePaymentStatus();
+            }
+        });
     }
 
     public function contract(): BelongsTo
@@ -88,5 +109,26 @@ class Vendor extends Model
     public function installments(): HasMany
     {
         return $this->hasMany(VendorInstallment::class);
+    }
+
+    /**
+     * "Pago integralmente" once paid installments cover the contract
+     * value, "pago parcialmente" once anything has been paid, otherwise
+     * "não pago" — this replaces manually picking the payment status.
+     */
+    public function computePaymentStatus(): string
+    {
+        $paidTotal = $this->installments()->where('status', Installment::STATUS_PAGO)->sum('amount');
+
+        return match (true) {
+            $this->contract_value !== null && $this->contract_value > 0 && $paidTotal >= $this->contract_value => self::PAYMENT_INTEGRAL,
+            $paidTotal > 0 => self::PAYMENT_PARCIAL,
+            default => self::PAYMENT_NAO_PAGO,
+        };
+    }
+
+    public function recalculatePaymentStatus(): void
+    {
+        $this->forceFill(['payment_status' => $this->computePaymentStatus()])->save();
     }
 }
