@@ -20,7 +20,7 @@ class ContractManagementTest extends TestCase
     public function test_adding_an_item_recalculates_contract_totals(): void
     {
         $user = User::factory()->create();
-        $contract = Contract::factory()->create(['discount' => 50]);
+        $contract = Contract::factory()->create(['discount_type' => 'fixed', 'discount_value' => 50]);
         $service = Service::factory()->create(['price' => 200]);
 
         $this->actingAs($user)->post(route('contract-items.store', $contract), [
@@ -51,6 +51,74 @@ class ContractManagementTest extends TestCase
 
         $contract->refresh();
         $this->assertEquals(0, $contract->subtotal);
+    }
+
+    public function test_updating_discount_as_fixed_amount_recalculates_the_total(): void
+    {
+        $user = User::factory()->create();
+        $contract = Contract::factory()->create();
+        $service = Service::factory()->create(['price' => 1000]);
+        $contract->items()->create(['service_id' => $service->id, 'quantity' => 1, 'unit_price' => 1000, 'total_price' => 1000]);
+        $contract->recalculateTotals();
+
+        $this->actingAs($user)->patch(route('contracts.update-discount', $contract), [
+            'discount_type' => 'fixed',
+            'discount_value_fixed' => '150',
+            'discount_value_percentage' => '0',
+        ])->assertRedirect(route('contracts.show', ['contract' => $contract, 'tab' => 'resumo']));
+
+        $contract->refresh();
+        $this->assertSame('150.00', $contract->discount);
+        $this->assertSame('850.00', $contract->total);
+    }
+
+    public function test_updating_discount_as_percentage_recalculates_the_total(): void
+    {
+        $user = User::factory()->create();
+        $contract = Contract::factory()->create();
+        $service = Service::factory()->create(['price' => 1000]);
+        $contract->items()->create(['service_id' => $service->id, 'quantity' => 1, 'unit_price' => 1000, 'total_price' => 1000]);
+        $contract->recalculateTotals();
+
+        $this->actingAs($user)->patch(route('contracts.update-discount', $contract), [
+            'discount_type' => 'percentage',
+            'discount_value_fixed' => '0',
+            'discount_value_percentage' => '10',
+        ])->assertSessionDoesntHaveErrors();
+
+        $contract->refresh();
+        $this->assertSame('100.00', $contract->discount);
+        $this->assertSame('900.00', $contract->total);
+    }
+
+    public function test_percentage_discount_stays_in_sync_when_items_change_afterward(): void
+    {
+        $user = User::factory()->create();
+        $contract = Contract::factory()->create(['discount_type' => 'percentage', 'discount_value' => 10]);
+        $contract->recalculateTotals();
+        $service = Service::factory()->create(['price' => 500]);
+
+        $this->actingAs($user)->post(route('contract-items.store', $contract), [
+            'service_id' => $service->id,
+            'quantity' => 2,
+        ])->assertRedirect(route('contracts.show', $contract));
+
+        $contract->refresh();
+        $this->assertSame('1000.00', $contract->subtotal);
+        $this->assertSame('100.00', $contract->discount);
+        $this->assertSame('900.00', $contract->total);
+    }
+
+    public function test_percentage_discount_above_100_is_rejected(): void
+    {
+        $user = User::factory()->create();
+        $contract = Contract::factory()->create();
+
+        $this->actingAs($user)->patch(route('contracts.update-discount', $contract), [
+            'discount_type' => 'percentage',
+            'discount_value_fixed' => '0',
+            'discount_value_percentage' => '150',
+        ])->assertSessionHasErrors('discount_value_percentage');
     }
 
     public function test_registering_an_occurrence_updates_contract_status(): void

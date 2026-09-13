@@ -71,7 +71,7 @@ class AuditLogRevertTest extends TestCase
 
         $this->assertSame('1000.00', $contract->fresh()->total);
 
-        $contract->update(['discount' => 200]);
+        $contract->update(['discount_type' => 'fixed', 'discount_value' => 200]);
         $contract->recalculateTotals();
         $this->assertSame('800.00', $contract->fresh()->total);
 
@@ -79,7 +79,7 @@ class AuditLogRevertTest extends TestCase
             ->where('auditable_id', $contract->id)
             ->where('action', 'updated')
             ->get()
-            ->firstOrFail(fn (AuditLog $log) => array_key_exists('discount', $log->changes ?? []));
+            ->firstOrFail(fn (AuditLog $log) => array_key_exists('discount_value', $log->changes ?? []));
 
         $this->post(route('audit-logs.revert', $log))->assertRedirect();
 

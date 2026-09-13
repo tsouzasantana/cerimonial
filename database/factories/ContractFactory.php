@@ -16,6 +16,8 @@ class ContractFactory extends Factory
             'event_location' => fake()->address(),
             'status' => Contract::STATUS_RASCUNHO,
             'discount' => 0,
+            'discount_type' => Contract::DISCOUNT_TYPE_FIXED,
+            'discount_value' => 0,
         ];
     }
 }

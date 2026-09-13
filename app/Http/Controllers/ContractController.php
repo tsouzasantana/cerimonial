@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ContractDiscountRequest;
 use App\Http\Requests\ContractRequest;
 use App\Mail\ContractPdfMail;
 use App\Models\AuditLog;
@@ -55,7 +56,11 @@ class ContractController extends Controller
     {
         $data = $request->validated();
         $data['created_by'] = $request->user()->id;
-        $data['discount'] = $data['discount'] ?? 0;
+        // Set explicitly (not just relying on the column defaults) so the
+        // in-memory model matches the DB row right after create(); discount
+        // is edited later via updateDiscount(), on the contract's own page.
+        $data['discount_type'] = Contract::DISCOUNT_TYPE_FIXED;
+        $data['discount_value'] = 0;
 
         $contract = Contract::create($data);
         $contract->recalculateTotals();
@@ -114,7 +119,6 @@ class ContractController extends Controller
     public function update(ContractRequest $request, Contract $contract): RedirectResponse
     {
         $data = $request->validated();
-        $data['discount'] = $data['discount'] ?? 0;
 
         $oldEventDate = $contract->event_date->copy();
 
@@ -130,6 +134,22 @@ class ContractController extends Controller
 
         return redirect()->route('contracts.show', $contract)
             ->with('success', 'Contrato atualizado com sucesso.');
+    }
+
+    public function updateDiscount(ContractDiscountRequest $request, Contract $contract): RedirectResponse
+    {
+        $data = $request->validated();
+
+        $contract->update([
+            'discount_type' => $data['discount_type'],
+            'discount_value' => $data['discount_type'] === Contract::DISCOUNT_TYPE_PERCENTAGE
+                ? $data['discount_value_percentage']
+                : $data['discount_value_fixed'],
+        ]);
+        $contract->recalculateTotals();
+
+        return redirect()->route('contracts.show', ['contract' => $contract, 'tab' => 'resumo'])
+            ->with('success', 'Desconto atualizado com sucesso.');
     }
 
     public function destroy(Contract $contract): RedirectResponse

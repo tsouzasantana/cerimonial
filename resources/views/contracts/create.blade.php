@@ -43,11 +43,6 @@
                             <x-input-error :messages="$errors->get('status')" class="mt-2" />
                         </div>
 
-                        <div>
-                            <x-input-label for="discount" value="Desconto" />
-                            <x-currency-input name="discount" :value="0" class="mt-1 block w-full" />
-                            <x-input-error :messages="$errors->get('discount')" class="mt-2" />
-                        </div>
                     </div>
 
                     <div class="mt-6">

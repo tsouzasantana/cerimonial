@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::post('contracts/{contract}/pdf', [ContractController::class, 'generatePdf'])->name('contracts.pdf');
     Route::get('contracts/{contract}/pdf', [ContractController::class, 'downloadPdf'])->name('contracts.pdf.download');
     Route::post('contracts/{contract}/send-email', [ContractController::class, 'sendContractEmail'])->name('contracts.send-email');
+    Route::patch('contracts/{contract}/discount', [ContractController::class, 'updateDiscount'])->name('contracts.update-discount');
 
     Route::post('contracts/{contract}/items', [ContractItemController::class, 'store'])->name('contract-items.store');
     Route::delete('contracts/{contract}/items/{item}', [ContractItemController::class, 'destroy'])->name('contract-items.destroy');

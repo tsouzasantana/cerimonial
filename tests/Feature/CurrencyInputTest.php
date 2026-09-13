@@ -35,11 +35,10 @@ class CurrencyInputTest extends TestCase
         $user = User::factory()->create();
         $contract = Contract::factory()->create(['discount' => 0]);
 
-        $this->actingAs($user)->put(route('contracts.update', $contract), [
-            'client_id' => $contract->client_id,
-            'event_date' => $contract->event_date->format('Y-m-d'),
-            'status' => $contract->status,
-            'discount' => '250.50',
+        $this->actingAs($user)->patch(route('contracts.update-discount', $contract), [
+            'discount_type' => 'fixed',
+            'discount_value_fixed' => '250.50',
+            'discount_value_percentage' => '0',
         ])->assertSessionDoesntHaveErrors();
 
         $this->assertSame('250.50', $contract->fresh()->discount);

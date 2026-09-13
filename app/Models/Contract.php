@@ -23,6 +23,10 @@ class Contract extends Model
 
     public const STATUS_CANCELADO = 'cancelado';
 
+    public const DISCOUNT_TYPE_FIXED = 'fixed';
+
+    public const DISCOUNT_TYPE_PERCENTAGE = 'percentage';
+
     public static function statusOptions(): array
     {
         return [
@@ -30,6 +34,14 @@ class Contract extends Model
             self::STATUS_ATIVO => 'Ativo',
             self::STATUS_CONCLUIDO => 'Concluído',
             self::STATUS_CANCELADO => 'Cancelado',
+        ];
+    }
+
+    public static function discountTypeOptions(): array
+    {
+        return [
+            self::DISCOUNT_TYPE_FIXED => 'Valor fixo (R$)',
+            self::DISCOUNT_TYPE_PERCENTAGE => 'Percentual (%)',
         ];
     }
 
@@ -58,6 +70,8 @@ class Contract extends Model
         'status',
         'subtotal',
         'discount',
+        'discount_type',
+        'discount_value',
         'total',
         'signed_at',
         'pdf_path',
@@ -71,6 +85,7 @@ class Contract extends Model
             'signed_at' => 'date',
             'subtotal' => 'decimal:2',
             'discount' => 'decimal:2',
+            'discount_value' => 'decimal:2',
             'total' => 'decimal:2',
         ];
     }
@@ -115,13 +130,22 @@ class Contract extends Model
         return $this->hasMany(Vendor::class);
     }
 
+    /**
+     * Re-derives discount from discount_type/discount_value against the
+     * current subtotal (not just from whatever "discount" already holds),
+     * so a percentage discount stays correct as items are added/removed.
+     */
     public function recalculateTotals(): void
     {
         $subtotal = $this->items()->sum('total_price');
-        $total = max(0, $subtotal - $this->discount);
+        $discount = $this->discount_type === self::DISCOUNT_TYPE_PERCENTAGE
+            ? round($subtotal * (float) $this->discount_value / 100, 2)
+            : (float) $this->discount_value;
+        $total = max(0, $subtotal - $discount);
 
         $this->forceFill([
             'subtotal' => $subtotal,
+            'discount' => $discount,
             'total' => $total,
         ])->save();
     }

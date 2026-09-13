@@ -54,12 +54,6 @@
                         </div>
 
                         <div>
-                            <x-input-label for="discount" value="Desconto" />
-                            <x-currency-input name="discount" :value="$contract->discount" class="mt-1 block w-full" />
-                            <x-input-error :messages="$errors->get('discount')" class="mt-2" />
-                        </div>
-
-                        <div>
                             <x-input-label for="signed_at" value="Data de assinatura" />
                             <x-text-input id="signed_at" name="signed_at" type="date" class="mt-1 block w-full" :value="old('signed_at', optional($contract->signed_at)->format('Y-m-d'))" />
                             <x-input-error :messages="$errors->get('signed_at')" class="mt-2" />

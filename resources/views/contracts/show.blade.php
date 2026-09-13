@@ -133,10 +133,48 @@
                         <x-secondary-button type="submit">Adicionar</x-secondary-button>
                     </form>
 
-                    <div class="mt-6 border-t pt-4 flex justify-end">
+                    <div class="mt-6 border-t pt-4 flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6">
+                        <form method="POST" action="{{ route('contracts.update-discount', $contract) }}"
+                                class="flex flex-wrap items-end gap-3"
+                                x-data="{ discountType: '{{ old('discount_type', $contract->discount_type) }}' }">
+                            @csrf
+                            @method('PATCH')
+                            <div>
+                                <x-input-label for="discount_type" value="Desconto" />
+                                <select id="discount_type" name="discount_type" x-model="discountType" class="mt-1 block w-40 border-gray-300 rounded-md shadow-sm">
+                                    @foreach (\App\Models\Contract::discountTypeOptions() as $value => $label)
+                                        <option value="{{ $value }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                <x-input-error :messages="$errors->get('discount_type')" class="mt-2" />
+                            </div>
+                            <div x-show="discountType === 'fixed'">
+                                <x-input-label for="discount_value_fixed" value="Valor" />
+                                <x-currency-input id="discount_value_fixed" name="discount_value_fixed"
+                                        :value="$contract->discount_type === 'fixed' ? $contract->discount_value : 0" class="mt-1 block w-36" />
+                                <x-input-error :messages="$errors->get('discount_value_fixed')" class="mt-2" />
+                            </div>
+                            <div x-show="discountType === 'percentage'" x-cloak>
+                                <x-input-label for="discount_value_percentage" value="Percentual" />
+                                <x-text-input id="discount_value_percentage" name="discount_value_percentage" type="number" step="0.01" min="0" max="100"
+                                        class="mt-1 block w-28"
+                                        :value="$contract->discount_type === 'percentage' ? $contract->discount_value : 0" />
+                                <x-input-error :messages="$errors->get('discount_value_percentage')" class="mt-2" />
+                            </div>
+                            <x-secondary-button type="submit">Salvar desconto</x-secondary-button>
+                        </form>
+
                         <dl class="text-sm space-y-1 text-right">
                             <div><dt class="inline text-gray-500">Subtotal:</dt> <dd class="inline text-gray-900 ml-2">R$ {{ number_format($contract->subtotal, 2, ',', '.') }}</dd></div>
-                            <div><dt class="inline text-gray-500">Desconto:</dt> <dd class="inline text-gray-900 ml-2">R$ {{ number_format($contract->discount, 2, ',', '.') }}</dd></div>
+                            <div>
+                                <dt class="inline text-gray-500">Desconto:</dt>
+                                <dd class="inline text-gray-900 ml-2">
+                                    R$ {{ number_format($contract->discount, 2, ',', '.') }}
+                                    @if ($contract->discount_type === 'percentage')
+                                        ({{ rtrim(rtrim(number_format($contract->discount_value, 2, ',', '.'), '0'), ',') }}%)
+                                    @endif
+                                </dd>
+                            </div>
                             <div><dt class="inline text-gray-700 font-semibold">Total:</dt> <dd class="inline text-gray-900 ml-2 font-semibold">R$ {{ number_format($contract->total, 2, ',', '.') }}</dd></div>
                         </dl>
                     </div>

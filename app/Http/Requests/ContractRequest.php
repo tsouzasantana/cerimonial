@@ -20,7 +20,6 @@ class ContractRequest extends FormRequest
             'event_date' => ['required', 'date'],
             'event_location' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(array_keys(Contract::statusOptions()))],
-            'discount' => ['nullable', 'numeric', 'min:0'],
             'signed_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ];
