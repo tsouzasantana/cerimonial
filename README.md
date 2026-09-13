@@ -174,6 +174,12 @@ O seeder cria:
 4. **Ambiente**: copie `.env.example` para `.env` no servidor e preencha:
    - `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL` com o domínio real.
    - `APP_KEY`: gere localmente com `php artisan key:generate --show` e cole o valor.
+   - `SESSION_SECURE_COOKIE=true` (assumindo que o site é servido via HTTPS,
+     o que já deveria ser o caso em produção) — evita que o cookie de sessão
+     seja transmitido numa conexão não criptografada.
+   - `LOG_STACK=daily` (padrão do `.env.example`) mantém os logs em arquivos
+     rotacionados por dia (`LOG_DAILY_DAYS`, padrão 14 dias) em vez de um
+     único `laravel.log` que cresce indefinidamente.
    - `DB_*` com os dados do banco MySQL criado no passo 1.
    - Se o banco MySQL estiver em um host remoto (fora do mesmo servidor da
      aplicação), defina `MYSQL_ATTR_SSL_CA` com o caminho do certificado CA

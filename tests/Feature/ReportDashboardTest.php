@@ -74,4 +74,39 @@ class ReportDashboardTest extends TestCase
         $response->assertSee('Fluxo de caixa projetado');
         $response->assertSee('R$ 500,00');
     }
+
+    public function test_checklist_report_only_lists_contracts_with_overdue_tasks(): void
+    {
+        $user = User::factory()->create();
+
+        $lateClient = Client::factory()->create(['name' => 'Cliente Atrasado']);
+        $late = Contract::factory()->create(['client_id' => $lateClient->id]);
+        ContractTask::factory()->create([
+            'contract_id' => $late->id,
+            'status' => ContractTask::STATUS_A_INICIAR,
+            'due_date' => now()->subDays(3),
+        ]);
+
+        $onTrackClient = Client::factory()->create(['name' => 'Cliente Em Dia']);
+        $onTrack = Contract::factory()->create(['client_id' => $onTrackClient->id]);
+        ContractTask::factory()->create([
+            'contract_id' => $onTrack->id,
+            'status' => ContractTask::STATUS_CONCLUIDA,
+            'due_date' => now()->subDays(3),
+        ]);
+        ContractTask::factory()->create([
+            'contract_id' => $onTrack->id,
+            'status' => ContractTask::STATUS_A_INICIAR,
+            'due_date' => now()->addDays(3),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('reports.index'));
+
+        $response->assertOk();
+        $response->assertViewHas('checklist', function ($checklist) use ($late, $onTrack) {
+            $ids = $checklist['contratos_com_atraso']->pluck('id');
+
+            return $ids->contains($late->id) && ! $ids->contains($onTrack->id);
+        });
+    }
 }

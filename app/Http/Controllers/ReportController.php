@@ -129,12 +129,12 @@ class ReportController extends Controller
                 $query->whereIn('status', ContractTask::openStatuses())
                     ->whereDate('due_date', '<', today());
             }])
+            ->groupBy('contracts.id')
+            ->having('overdue_tasks_count', '>', 0)
             ->with('client')
-            ->get()
-            ->filter(fn (Contract $contract) => $contract->overdue_tasks_count > 0)
-            ->sortByDesc('overdue_tasks_count')
-            ->take(10)
-            ->values();
+            ->orderByDesc('overdue_tasks_count')
+            ->limit(10)
+            ->get();
 
         return [
             'total' => $total,
