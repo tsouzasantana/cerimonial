@@ -192,6 +192,26 @@ class FinancialControlTest extends TestCase
         $this->assertSame('client', $entry->updated_by_type);
     }
 
+    public function test_public_portal_renders_vendor_installments_and_financial_tab_when_data_exists(): void
+    {
+        $contract = $this->contractWithClientCpf();
+        $vendor = Vendor::factory()->create(['contract_id' => $contract->id, 'name' => 'Buffet do Portal']);
+        VendorInstallment::factory()->create(['vendor_id' => $vendor->id, 'amount' => 321]);
+        FinancialEntry::factory()->create(['contract_id' => $contract->id, 'vendor_id' => $vendor->id, 'description' => 'Gasto do portal']);
+
+        $this->post(route('public.verify', $contract->public_token), ['document' => $contract->client->document]);
+
+        $fornecedores = $this->get(route('public.show', ['token' => $contract->public_token, 'tab' => 'fornecedores']));
+        $fornecedores->assertOk();
+        $fornecedores->assertSee('Buffet do Portal');
+        $fornecedores->assertSee('321,00');
+
+        $financeiro = $this->get(route('public.show', ['token' => $contract->public_token, 'tab' => 'financeiro']));
+        $financeiro->assertOk();
+        $financeiro->assertSee('Gasto do portal');
+        $financeiro->assertSee('321,00');
+    }
+
     public function test_guest_cannot_add_a_financial_entry(): void
     {
         $contract = Contract::factory()->create();
