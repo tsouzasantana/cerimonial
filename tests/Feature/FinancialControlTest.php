@@ -62,6 +62,25 @@ class FinancialControlTest extends TestCase
         ]);
     }
 
+    public function test_the_add_installment_form_renders_every_field_the_request_requires(): void
+    {
+        // Regression test: the form was missing the "status" select even
+        // though VendorInstallmentRequest requires it, so every real
+        // submission through the UI failed validation while the
+        // controller-level tests above (which post a complete payload
+        // directly) never caught it.
+        $user = User::factory()->create();
+        $vendor = Vendor::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('contracts.show', ['contract' => $vendor->contract, 'tab' => 'fornecedores']));
+
+        $response->assertOk();
+        $response->assertSee("id=\"vendor-{$vendor->id}-installment-number\"", false);
+        $response->assertSee("id=\"vendor-{$vendor->id}-installment-amount\"", false);
+        $response->assertSee("id=\"vendor-{$vendor->id}-installment-due_date\"", false);
+        $response->assertSee("id=\"vendor-{$vendor->id}-installment-status\"", false);
+    }
+
     public function test_admin_can_generate_vendor_installments_in_batch(): void
     {
         $user = User::factory()->create();

@@ -98,7 +98,7 @@
 
                 @php
                     $vendorSubmittedThis = old('_vendor_id') == $vendor->id;
-                    $hasInstallmentErrors = $vendorSubmittedThis && $errors->hasAny(['number', 'amount', 'due_date']);
+                    $hasInstallmentErrors = $vendorSubmittedThis && $errors->hasAny(['number', 'amount', 'due_date', 'status']);
                     $hasBatchErrors = $vendorSubmittedThis && $errors->hasAny(['total_amount', 'installment_count', 'first_due_date', 'interval_months']);
                 @endphp
                 <div class="mt-3 border-t pt-3" x-data="{ showInstallments: {{ ($hasInstallmentErrors || $hasBatchErrors) ? 'true' : 'false' }} }">
@@ -176,6 +176,17 @@
                                 <x-text-input id="vendor-{{ $vendor->id }}-installment-due_date" name="due_date" type="date" class="mt-1 block w-40" required />
                                 @if ($hasInstallmentErrors)
                                     <x-input-error :messages="$errors->get('due_date')" class="mt-2" />
+                                @endif
+                            </div>
+                            <div>
+                                <x-input-label for="vendor-{{ $vendor->id }}-installment-status" value="Status" />
+                                <select id="vendor-{{ $vendor->id }}-installment-status" name="status" class="mt-1 block w-32 border-gray-300 rounded-md shadow-sm">
+                                    @foreach (Installment::statusOptions() as $value => $label)
+                                        <option value="{{ $value }}" @selected($value === Installment::STATUS_PENDENTE)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                @if ($hasInstallmentErrors)
+                                    <x-input-error :messages="$errors->get('status')" class="mt-2" />
                                 @endif
                             </div>
                             <x-secondary-button type="submit">Adicionar parcela</x-secondary-button>
