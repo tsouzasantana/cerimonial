@@ -13,7 +13,7 @@
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                    <div><dt class="text-gray-500">Status</dt><dd class="text-gray-900 font-medium">{{ Contract::statusOptions()[$contract->status] ?? $contract->status }}</dd></div>
+                    <div><dt class="text-gray-500">Status</dt><dd class="mt-1"><x-status-badge :variant="$contract->statusBadgeVariant()">{{ Contract::statusOptions()[$contract->status] ?? $contract->status }}</x-status-badge></dd></div>
                     <div><dt class="text-gray-500">Data do evento</dt><dd class="text-gray-900">{{ $contract->event_date->format('d/m/Y') }}</dd></div>
                     <div><dt class="text-gray-500">Local</dt><dd class="text-gray-900">{{ $contract->event_location ?: '—' }}</dd></div>
                     <div><dt class="text-gray-500">Valor total</dt><dd class="text-gray-900">R$ {{ number_format($contract->total, 2, ',', '.') }}</dd></div>
@@ -88,7 +88,9 @@
                                     <td class="py-2 pr-3">{{ $installment->number }}</td>
                                     <td class="py-2 pr-3">{{ $installment->due_date->format('d/m/Y') }}</td>
                                     <td class="py-2 pr-3">R$ {{ number_format($installment->amount, 2, ',', '.') }}</td>
-                                    <td class="py-2 pr-3">{{ \App\Models\Installment::statusOptions()[$installment->status] ?? $installment->status }}</td>
+                                    <td class="py-2 pr-3">
+                                        <x-status-badge :variant="$installment->statusBadgeVariant()">{{ \App\Models\Installment::statusOptions()[$installment->status] ?? $installment->status }}</x-status-badge>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr><td colspan="4" class="py-3 text-center text-gray-500">Nenhuma parcela cadastrada.</td></tr>

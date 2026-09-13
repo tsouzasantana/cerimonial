@@ -3,24 +3,28 @@
 @endphp
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <div class="flex flex-wrap justify-between items-center gap-2">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight min-w-0 break-words">
                 Contrato #{{ $contract->id }} &mdash; {{ $contract->client->name }}
             </h2>
-            <div class="space-x-3">
+            <div class="space-x-3 whitespace-nowrap">
                 <a href="{{ route('contracts.edit', $contract) }}" class="text-sm text-gray-600 hover:text-gray-900">Editar</a>
                 <a href="{{ route('contracts.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Voltar</a>
             </div>
         </div>
     </x-slot>
 
-    <div class="py-12" x-data="{ tab: '{{ request('tab', 'resumo') }}' }">
+    <div class="py-12" x-data="{ tab: '{{ request('tab', 'resumo') }}' }" x-init="$watch('tab', (value) => {
+            const url = new URL(window.location);
+            url.searchParams.set('tab', value);
+            window.history.replaceState({}, '', url);
+        })">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <div class="flex flex-wrap justify-between gap-4">
                     <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm flex-1">
-                        <div><dt class="text-gray-500">Status</dt><dd class="text-gray-900 font-medium">{{ Contract::statusOptions()[$contract->status] ?? $contract->status }}</dd></div>
+                        <div><dt class="text-gray-500">Status</dt><dd class="mt-1"><x-status-badge :variant="$contract->statusBadgeVariant()">{{ Contract::statusOptions()[$contract->status] ?? $contract->status }}</x-status-badge></dd></div>
                         <div><dt class="text-gray-500">Data do evento</dt><dd class="text-gray-900">{{ $contract->event_date->format('d/m/Y') }}</dd></div>
                         <div><dt class="text-gray-500">Local</dt><dd class="text-gray-900">{{ $contract->event_location ?: '—' }}</dd></div>
                         <div><dt class="text-gray-500">Assinado em</dt><dd class="text-gray-900">{{ optional($contract->signed_at)->format('d/m/Y') ?: 'Não assinado' }}</dd></div>
@@ -28,14 +32,14 @@
                     <div class="flex flex-col gap-2">
                         <form method="POST" action="{{ route('contracts.pdf', $contract) }}">
                             @csrf
-                            <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 bg-brand-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-brand-500">
+                            <button type="submit" data-loading-text="Gerando..." class="w-full inline-flex justify-center items-center px-4 py-2 bg-brand-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-brand-500">
                                 Gerar PDF do contrato
                             </button>
                         </form>
                         <a href="{{ route('contracts.pdf.download', $contract) }}" class="text-center text-sm text-brand-600 hover:text-brand-800">Baixar último PDF</a>
                         <form method="POST" action="{{ route('contracts.send-email', $contract) }}" onsubmit="return confirm('Enviar o PDF do contrato para o e-mail do cliente?');">
                             @csrf
-                            <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50">
+                            <button type="submit" data-loading-text="Enviando..." class="w-full inline-flex justify-center items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50">
                                 Enviar por e-mail
                             </button>
                         </form>

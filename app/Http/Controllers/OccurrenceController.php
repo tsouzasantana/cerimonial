@@ -48,7 +48,7 @@ class OccurrenceController extends Controller
             $contract->update(['status' => $type->contract_status]);
         }
 
-        return redirect()->route('contracts.show', $contract)
+        return redirect()->route('contracts.show', ['contract' => $contract, 'tab' => 'ocorrencias'])
             ->with('success', 'Ocorrência registrada com sucesso.');
     }
 
@@ -58,7 +58,7 @@ class OccurrenceController extends Controller
 
         $occurrence->delete();
 
-        return redirect()->route('contracts.show', $contract)
+        return redirect()->route('contracts.show', ['contract' => $contract, 'tab' => 'ocorrencias'])
             ->with('success', 'Ocorrência inativada com sucesso.');
     }
 
@@ -69,7 +69,7 @@ class OccurrenceController extends Controller
 
         $occurrence->restore();
 
-        return redirect()->route('contracts.show', $contract)
+        return redirect()->route('contracts.show', ['contract' => $contract, 'tab' => 'ocorrencias'])
             ->with('success', 'Ocorrência reativada com sucesso.');
     }
 }

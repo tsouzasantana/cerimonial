@@ -33,6 +33,16 @@ class Contract extends Model
         ];
     }
 
+    public function statusBadgeVariant(): string
+    {
+        return match ($this->status) {
+            self::STATUS_ATIVO => 'info',
+            self::STATUS_CONCLUIDO => 'success',
+            self::STATUS_CANCELADO => 'danger',
+            default => 'neutral',
+        };
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Contract $contract) {

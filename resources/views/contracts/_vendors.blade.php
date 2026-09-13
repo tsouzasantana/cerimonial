@@ -56,12 +56,16 @@
                     @endunless
                     <input type="hidden" name="notes" value="{{ $vendor->notes }}">
 
-                    <select name="status" class="border-gray-300 rounded-md shadow-sm text-xs" onchange="this.form.submit()">
+                    <select name="status" class="border-gray-300 rounded-md shadow-sm text-xs"
+                            data-original-value="{{ $vendor->status }}"
+                            onchange="{{ $isPublic ? "confirmAndSubmit(this, 'Atualizar o status deste fornecedor?')" : 'this.form.submit()' }}">
                         @foreach (Vendor::statusOptions() as $value => $label)
                             <option value="{{ $value }}" @selected($vendor->status === $value)>{{ $label }}</option>
                         @endforeach
                     </select>
-                    <select name="payment_status" class="border-gray-300 rounded-md shadow-sm text-xs" onchange="this.form.submit()">
+                    <select name="payment_status" class="border-gray-300 rounded-md shadow-sm text-xs"
+                            data-original-value="{{ $vendor->payment_status }}"
+                            onchange="{{ $isPublic ? "confirmAndSubmit(this, 'Atualizar a situação do pagamento deste fornecedor?')" : 'this.form.submit()' }}">
                         @foreach (Vendor::paymentStatusOptions() as $value => $label)
                             <option value="{{ $value }}" @selected($vendor->payment_status === $value)>{{ $label }}</option>
                         @endforeach
@@ -99,30 +103,31 @@
                         <p class="text-xs text-gray-500">{{ $vendor->document ?: 'sem documento' }} &middot; {{ $vendor->vendorServiceType->name }}</p>
                     @else
                         <div>
-                            <x-input-label value="Nome" />
-                            <x-text-input name="name" type="text" class="mt-1 block w-full" value="{{ $vendor->name }}" required />
+                            <x-input-label for="vendor-{{ $vendor->id }}-name" value="Nome" />
+                            <x-text-input id="vendor-{{ $vendor->id }}-name" name="name" type="text" class="mt-1 block w-full" value="{{ $vendor->name }}" required />
                         </div>
                         <div>
-                            <x-input-label value="CPF/CNPJ" />
-                            <x-text-input name="document" type="text" data-mask="document" inputmode="numeric" class="mt-1 block w-full" value="{{ $vendor->document }}" />
+                            <x-input-label for="vendor-{{ $vendor->id }}-document" value="CPF/CNPJ" />
+                            <x-text-input id="vendor-{{ $vendor->id }}-document" name="document" type="text" data-mask="document" inputmode="numeric" class="mt-1 block w-full" value="{{ $vendor->document }}" />
                         </div>
                         <div>
-                            <x-input-label value="Tipo de serviço" />
-                            <select name="vendor_service_type_id" x-model="svc" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            <x-input-label for="vendor-{{ $vendor->id }}-vendor_service_type_id" value="Tipo de serviço" />
+                            <select id="vendor-{{ $vendor->id }}-vendor_service_type_id" name="vendor_service_type_id" x-model="svc" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                                 <option value="">Outro (digitar abaixo)</option>
                                 @foreach ($vendorServiceTypes as $type)
                                     <option value="{{ $type->id }}">{{ $type->name }}</option>
                                 @endforeach
                             </select>
                             <div x-show="svc === ''" x-cloak class="mt-2">
-                                <x-text-input name="new_service_type" type="text" placeholder="Digite o novo tipo de serviço" class="block w-full" />
+                                <x-input-label for="vendor-{{ $vendor->id }}-new_service_type" value="Novo tipo de serviço" class="sr-only" />
+                                <x-text-input id="vendor-{{ $vendor->id }}-new_service_type" name="new_service_type" type="text" placeholder="Digite o novo tipo de serviço" class="block w-full" />
                             </div>
                         </div>
                     @endif
 
                     <div>
-                        <x-input-label value="Status" />
-                        <select name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        <x-input-label for="vendor-{{ $vendor->id }}-status" value="Status" />
+                        <select id="vendor-{{ $vendor->id }}-status" name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                             @foreach (Vendor::statusOptions() as $value => $label)
                                 <option value="{{ $value }}" @selected($vendor->status === $value)>{{ $label }}</option>
                             @endforeach
@@ -130,8 +135,8 @@
                     </div>
 
                     <div>
-                        <x-input-label value="Situação do pagamento" />
-                        <select name="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        <x-input-label for="vendor-{{ $vendor->id }}-payment_status" value="Situação do pagamento" />
+                        <select id="vendor-{{ $vendor->id }}-payment_status" name="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                             @foreach (Vendor::paymentStatusOptions() as $value => $label)
                                 <option value="{{ $value }}" @selected($vendor->payment_status === $value)>{{ $label }}</option>
                             @endforeach
@@ -139,8 +144,8 @@
                     </div>
 
                     <div>
-                        <x-input-label value="Observações" />
-                        <textarea name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">{{ $vendor->notes }}</textarea>
+                        <x-input-label for="vendor-{{ $vendor->id }}-notes" value="Observações" />
+                        <textarea id="vendor-{{ $vendor->id }}-notes" name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">{{ $vendor->notes }}</textarea>
                     </div>
 
                     <div class="flex justify-end gap-3">
@@ -158,44 +163,45 @@
     <form method="POST" action="{{ $storeUrl }}" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         @csrf
         <div>
-            <x-input-label value="Nome" />
-            <x-text-input name="name" type="text" class="mt-1 block w-full" required />
+            <x-input-label for="new-vendor-name" value="Nome" />
+            <x-text-input id="new-vendor-name" name="name" type="text" class="mt-1 block w-full" required />
         </div>
         <div>
-            <x-input-label value="CPF/CNPJ" />
-            <x-text-input name="document" type="text" data-mask="document" inputmode="numeric" class="mt-1 block w-full" />
+            <x-input-label for="new-vendor-document" value="CPF/CNPJ" />
+            <x-text-input id="new-vendor-document" name="document" type="text" data-mask="document" inputmode="numeric" class="mt-1 block w-full" />
         </div>
         <div>
-            <x-input-label value="Tipo de serviço" />
-            <select name="vendor_service_type_id" x-model="svc" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            <x-input-label for="new-vendor-vendor_service_type_id" value="Tipo de serviço" />
+            <select id="new-vendor-vendor_service_type_id" name="vendor_service_type_id" x-model="svc" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                 <option value="">Outro (digitar abaixo)</option>
                 @foreach ($vendorServiceTypes as $type)
                     <option value="{{ $type->id }}">{{ $type->name }}</option>
                 @endforeach
             </select>
             <div x-show="svc === ''" x-cloak class="mt-2">
-                <x-text-input name="new_service_type" type="text" placeholder="Digite o novo tipo de serviço" class="block w-full" />
+                <x-input-label for="new-vendor-new_service_type" value="Novo tipo de serviço" class="sr-only" />
+                <x-text-input id="new-vendor-new_service_type" name="new_service_type" type="text" placeholder="Digite o novo tipo de serviço" class="block w-full" />
             </div>
         </div>
         <div>
-            <x-input-label value="Status" />
-            <select name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            <x-input-label for="new-vendor-status" value="Status" />
+            <select id="new-vendor-status" name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                 @foreach (Vendor::statusOptions() as $value => $label)
                     <option value="{{ $value }}">{{ $label }}</option>
                 @endforeach
             </select>
         </div>
         <div>
-            <x-input-label value="Situação do pagamento" />
-            <select name="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            <x-input-label for="new-vendor-payment_status" value="Situação do pagamento" />
+            <select id="new-vendor-payment_status" name="payment_status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                 @foreach (Vendor::paymentStatusOptions() as $value => $label)
                     <option value="{{ $value }}">{{ $label }}</option>
                 @endforeach
             </select>
         </div>
         <div class="sm:col-span-2">
-            <x-input-label value="Observações" />
-            <textarea name="notes" rows="2" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm"></textarea>
+            <x-input-label for="new-vendor-notes" value="Observações" />
+            <textarea id="new-vendor-notes" name="notes" rows="2" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm"></textarea>
         </div>
         <div class="sm:col-span-2 text-right">
             <x-primary-button type="submit">Adicionar fornecedor</x-primary-button>

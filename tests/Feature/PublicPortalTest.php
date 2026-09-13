@@ -37,7 +37,16 @@ class PublicPortalTest extends TestCase
 
     public function test_unknown_token_returns_not_found(): void
     {
-        $this->get(route('public.gate', 'token-que-nao-existe'))->assertNotFound();
+        $this->get(route('public.gate', 'token-que-nao-existe'))
+            ->assertNotFound()
+            ->assertSee('Este link não é mais válido');
+    }
+
+    public function test_unknown_token_on_protected_route_returns_friendly_not_found(): void
+    {
+        $this->get(route('public.show', 'token-que-nao-existe'))
+            ->assertNotFound()
+            ->assertSee('Este link não é mais válido');
     }
 
     public function test_contract_page_redirects_to_gate_when_not_verified(): void

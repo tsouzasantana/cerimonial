@@ -2,9 +2,9 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Tipos de ocorrência</h2>
-            <a href="{{ route('occurrence-types.create') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+            <x-link-button href="{{ route('occurrence-types.create') }}">
                 Novo tipo
-            </a>
+            </x-link-button>
         </div>
     </x-slot>
 

@@ -85,6 +85,43 @@ document.addEventListener('input', (event) => {
     }
 });
 
+// Desabilita o botão de envio ao submeter um formulário, evitando duplo
+// clique (ex.: gerar/enviar o PDF do contrato duas vezes). Formulários que
+// abrem uma confirmação/modal antes de submeter (via preventDefault) não são
+// afetados, pois o evento chega aqui com defaultPrevented = true.
+document.addEventListener('submit', (event) => {
+    const form = event.target;
+
+    if (!(form instanceof HTMLFormElement) || form.dataset.noLoading !== undefined) return;
+    if (event.defaultPrevented) return;
+
+    const submitter = event.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
+    if (!submitter || submitter.disabled) return;
+
+    submitter.disabled = true;
+    submitter.classList.add('opacity-60', 'cursor-not-allowed');
+
+    if (submitter.dataset.loadingText) {
+        submitter.innerHTML = submitter.dataset.loadingText;
+    }
+});
+
+// Confirma antes de submeter um <select> com auto-submit (usado no portal
+// público, onde a troca de opção salva imediatamente, sem um botão
+// "Salvar" separado). Se o usuário cancelar, o select volta ao valor
+// original em vez de ficar mostrando uma opção que não foi salva.
+window.confirmAndSubmit = function (select, message) {
+    if (confirm(message)) {
+        if (select.form.requestSubmit) {
+            select.form.requestSubmit();
+        } else {
+            select.form.submit();
+        }
+    } else {
+        select.value = select.dataset.originalValue;
+    }
+};
+
 // Preenchimento automático de endereço a partir do CEP (API ViaCEP).
 document.addEventListener('blur', (event) => {
     if (!event.target.matches('[data-cep-autofill]')) return;

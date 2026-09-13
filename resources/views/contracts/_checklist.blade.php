@@ -139,19 +139,19 @@
                 <input type="hidden" name="name" value="{{ $task->name }}">
             @else
                 <div>
-                    <x-input-label value="Nome da tarefa" />
-                    <x-text-input name="name" type="text" class="mt-1 block w-full" value="{{ $task->name }}" required />
+                    <x-input-label for="task-{{ $task->id }}-name" value="Nome da tarefa" />
+                    <x-text-input id="task-{{ $task->id }}-name" name="name" type="text" class="mt-1 block w-full" value="{{ $task->name }}" required />
                 </div>
             @endif
 
             <div>
-                <x-input-label value="Prazo" />
-                <x-text-input name="due_date" type="date" class="mt-1 block w-full" value="{{ $task->due_date->format('Y-m-d') }}" required />
+                <x-input-label for="task-{{ $task->id }}-due_date" value="Prazo" />
+                <x-text-input id="task-{{ $task->id }}-due_date" name="due_date" type="date" class="mt-1 block w-full" value="{{ $task->due_date->format('Y-m-d') }}" required />
             </div>
 
             <div>
-                <x-input-label value="Status" />
-                <select name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                <x-input-label for="task-{{ $task->id }}-status" value="Status" />
+                <select id="task-{{ $task->id }}-status" name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                     @foreach (ContractTask::statusOptions() as $value => $label)
                         <option value="{{ $value }}" @selected($task->status === $value)>{{ $label }}</option>
                     @endforeach
@@ -159,8 +159,8 @@
             </div>
 
             <div>
-                <x-input-label value="Observações" />
-                <textarea name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">{{ $task->notes }}</textarea>
+                <x-input-label for="task-{{ $task->id }}-notes" value="Observações" />
+                <textarea id="task-{{ $task->id }}-notes" name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">{{ $task->notes }}</textarea>
             </div>
 
             <div class="flex justify-end gap-3">
@@ -176,16 +176,16 @@
     <form method="POST" action="{{ $storeUrl }}" class="flex flex-wrap items-end gap-3">
         @csrf
         <div>
-            <x-input-label value="Nome da tarefa" />
-            <x-text-input name="name" type="text" class="mt-1 block w-64" required />
+            <x-input-label for="new-task-name" value="Nome da tarefa" />
+            <x-text-input id="new-task-name" name="name" type="text" class="mt-1 block w-64" required />
         </div>
         <div>
-            <x-input-label value="Prazo" />
-            <x-text-input name="due_date" type="date" class="mt-1 block w-40" required />
+            <x-input-label for="new-task-due_date" value="Prazo" />
+            <x-text-input id="new-task-due_date" name="due_date" type="date" class="mt-1 block w-40" required />
         </div>
         <div>
-            <x-input-label value="Observações" />
-            <x-text-input name="notes" type="text" class="mt-1 block w-64" />
+            <x-input-label for="new-task-notes" value="Observações" />
+            <x-text-input id="new-task-notes" name="notes" type="text" class="mt-1 block w-64" />
         </div>
         <x-secondary-button type="submit">Adicionar</x-secondary-button>
     </form>

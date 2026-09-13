@@ -30,6 +30,16 @@ class Installment extends Model
         ];
     }
 
+    public function statusBadgeVariant(): string
+    {
+        return match ($this->status) {
+            self::STATUS_PAGO => 'success',
+            self::STATUS_PENDENTE => 'warning',
+            self::STATUS_ATRASADO => 'danger',
+            default => 'neutral',
+        };
+    }
+
     public static function paymentMethodOptions(): array
     {
         return [

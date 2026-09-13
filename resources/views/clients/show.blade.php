@@ -1,8 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $client->name }}</h2>
-            <div class="space-x-3">
+        <div class="flex flex-wrap justify-between items-center gap-2">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight min-w-0 break-words">{{ $client->name }}</h2>
+            <div class="space-x-3 whitespace-nowrap">
                 <a href="{{ route('clients.edit', $client) }}" class="text-sm text-gray-600 hover:text-gray-900">Editar</a>
                 <a href="{{ route('clients.index') }}" class="text-sm text-gray-600 hover:text-gray-900">Voltar</a>
             </div>
@@ -47,7 +47,7 @@
                                 <a href="{{ route('contracts.show', $contract) }}" class="text-brand-600 hover:text-brand-800">
                                     Evento em {{ $contract->event_date->format('d/m/Y') }}
                                 </a>
-                                <span class="text-sm text-gray-500">{{ \App\Models\Contract::statusOptions()[$contract->status] ?? $contract->status }}</span>
+                                <x-status-badge :variant="$contract->statusBadgeVariant()">{{ \App\Models\Contract::statusOptions()[$contract->status] ?? $contract->status }}</x-status-badge>
                             </li>
                         @endforeach
                     </ul>

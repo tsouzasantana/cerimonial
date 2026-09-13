@@ -63,7 +63,7 @@ class ContractManagementTest extends TestCase
             'occurrence_type_id' => $type->id,
             'occurrence_date' => now()->format('Y-m-d'),
             'description' => 'Contrato assinado pelo cliente',
-        ])->assertRedirect(route('contracts.show', $contract));
+        ])->assertRedirect(route('contracts.show', ['contract' => $contract, 'tab' => 'ocorrencias']));
 
         $this->assertEquals(Contract::STATUS_ATIVO, $contract->fresh()->status);
     }

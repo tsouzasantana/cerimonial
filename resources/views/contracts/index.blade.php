@@ -2,9 +2,9 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Contratos de cerimonial</h2>
-            <a href="{{ route('contracts.create') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+            <x-link-button href="{{ route('contracts.create') }}">
                 Novo contrato
-            </a>
+            </x-link-button>
         </div>
     </x-slot>
 
@@ -44,7 +44,9 @@
                                     <a href="{{ route('contracts.show', $contract) }}" class="text-brand-600 hover:text-brand-800 font-medium">{{ $contract->client->name }}</a>
                                 </td>
                                 <td class="py-2 pr-3 text-gray-600">{{ $contract->event_date->format('d/m/Y') }}</td>
-                                <td class="py-2 pr-3 text-gray-600">{{ $statusOptions[$contract->status] ?? $contract->status }}</td>
+                                <td class="py-2 pr-3">
+                                    <x-status-badge :variant="$contract->statusBadgeVariant()">{{ $statusOptions[$contract->status] ?? $contract->status }}</x-status-badge>
+                                </td>
                                 <td class="py-2 pr-3 text-gray-600">R$ {{ number_format($contract->total, 2, ',', '.') }}</td>
                                 <td class="py-2 pr-3 text-right space-x-3">
                                     @if ($contract->trashed())

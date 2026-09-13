@@ -9,8 +9,8 @@
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <form method="GET" class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
                     <div>
-                        <x-input-label value="Contrato" />
-                        <select name="contract_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm text-sm">
+                        <x-input-label for="filter-contract_id" value="Contrato" />
+                        <select id="filter-contract_id" name="contract_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm text-sm">
                             <option value="">Todos</option>
                             @foreach ($contracts as $contract)
                                 <option value="{{ $contract->id }}" @selected((string) request('contract_id') === (string) $contract->id)>
@@ -20,8 +20,8 @@
                         </select>
                     </div>
                     <div>
-                        <x-input-label value="Quem" />
-                        <select name="actor_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm text-sm">
+                        <x-input-label for="filter-actor_type" value="Quem" />
+                        <select id="filter-actor_type" name="actor_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm text-sm">
                             <option value="">Todos</option>
                             @foreach ($actorTypeOptions as $value => $label)
                                 <option value="{{ $value }}" @selected(request('actor_type') === $value)>{{ $label }}</option>
@@ -29,8 +29,8 @@
                         </select>
                     </div>
                     <div>
-                        <x-input-label value="Ação" />
-                        <select name="action" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm text-sm">
+                        <x-input-label for="filter-action" value="Ação" />
+                        <select id="filter-action" name="action" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm text-sm">
                             <option value="">Todas</option>
                             @foreach ($actionOptions as $value => $label)
                                 <option value="{{ $value }}" @selected(request('action') === $value)>{{ $label }}</option>
@@ -38,12 +38,12 @@
                         </select>
                     </div>
                     <div>
-                        <x-input-label value="De" />
-                        <x-text-input name="date_from" type="date" class="mt-1 block w-full text-sm" value="{{ request('date_from') }}" />
+                        <x-input-label for="filter-date_from" value="De" />
+                        <x-text-input id="filter-date_from" name="date_from" type="date" class="mt-1 block w-full text-sm" value="{{ request('date_from') }}" />
                     </div>
                     <div>
-                        <x-input-label value="Até" />
-                        <x-text-input name="date_to" type="date" class="mt-1 block w-full text-sm" value="{{ request('date_to') }}" />
+                        <x-input-label for="filter-date_to" value="Até" />
+                        <x-text-input id="filter-date_to" name="date_to" type="date" class="mt-1 block w-full text-sm" value="{{ request('date_to') }}" />
                     </div>
                     <div class="sm:col-span-5 flex gap-3">
                         <x-secondary-button type="submit">Filtrar</x-secondary-button>
