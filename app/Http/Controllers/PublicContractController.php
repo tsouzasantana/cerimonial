@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\EnsuresContractOwnership;
 use App\Http\Requests\ContractTaskRequest;
 use App\Http\Requests\PublicDocumentRequest;
 use App\Http\Requests\PublicTaskUpdateRequest;
@@ -25,6 +26,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PublicContractController extends Controller
 {
+    use EnsuresContractOwnership;
+
     private function resolveContract(string $token): Contract
     {
         return Contract::where('public_token', $token)->firstOrFail();
@@ -88,7 +91,7 @@ class PublicContractController extends Controller
     public function updateTaskStatus(Request $request, string $token, ContractTask $task): JsonResponse
     {
         $contract = $request->attributes->get('publicContract');
-        abort_unless($task->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($task, $contract);
 
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(ContractTask::statusOptions()))],
@@ -106,7 +109,7 @@ class PublicContractController extends Controller
     public function updateTask(PublicTaskUpdateRequest $request, string $token, ContractTask $task): RedirectResponse
     {
         $contract = $request->attributes->get('publicContract');
-        abort_unless($task->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($task, $contract);
 
         $task->update($request->validated());
 
@@ -131,7 +134,7 @@ class PublicContractController extends Controller
     public function destroyTask(Request $request, string $token, ContractTask $task): RedirectResponse
     {
         $contract = $request->attributes->get('publicContract');
-        abort_unless($task->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($task, $contract);
 
         $task->delete();
 
@@ -168,7 +171,7 @@ class PublicContractController extends Controller
     public function updateVendor(PublicVendorUpdateRequest $request, string $token, Vendor $vendor): RedirectResponse
     {
         $contract = $request->attributes->get('publicContract');
-        abort_unless($vendor->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($vendor, $contract);
 
         $vendor->update($request->validated());
 
@@ -179,7 +182,7 @@ class PublicContractController extends Controller
     public function destroyVendor(Request $request, string $token, Vendor $vendor): RedirectResponse
     {
         $contract = $request->attributes->get('publicContract');
-        abort_unless($vendor->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($vendor, $contract);
 
         $vendor->delete();
 
@@ -195,7 +198,7 @@ class PublicContractController extends Controller
         $vendor = null;
         if (! empty($data['vendor_id'])) {
             $vendor = Vendor::findOrFail($data['vendor_id']);
-            abort_unless($vendor->contract_id === $contract->id, 404);
+            $this->ensureBelongsToContract($vendor, $contract);
         }
 
         $attributes = [

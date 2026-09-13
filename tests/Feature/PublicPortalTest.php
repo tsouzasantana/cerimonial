@@ -69,6 +69,22 @@ class PublicPortalTest extends TestCase
             ->assertRedirect(route('public.gate', $contract->public_token));
     }
 
+    public function test_verify_is_rate_limited_after_repeated_wrong_attempts(): void
+    {
+        $contract = $this->contractWithClientCpf('123.456.789-09');
+
+        for ($i = 0; $i < 10; $i++) {
+            $this->post(route('public.verify', $contract->public_token), ['document' => '999.999.999-99']);
+        }
+
+        $this->post(route('public.verify', $contract->public_token), ['document' => '123.456.789-09'])
+            ->assertRedirect(route('public.gate', $contract->public_token))
+            ->assertSessionHasErrors('document');
+
+        $this->get(route('public.show', $contract->public_token))
+            ->assertRedirect(route('public.gate', $contract->public_token));
+    }
+
     public function test_correct_cpf_grants_access_regardless_of_formatting(): void
     {
         $contract = $this->contractWithClientCpf('123.456.789-09');
@@ -261,7 +277,7 @@ class PublicPortalTest extends TestCase
             'due_date' => now()->addDays(5)->format('Y-m-d'),
         ])->assertRedirect();
 
-        Mail::assertSent(ClientActivityMail::class, function (ClientActivityMail $mail) use ($contract, $staff) {
+        Mail::assertQueued(ClientActivityMail::class, function (ClientActivityMail $mail) use ($contract, $staff) {
             return $mail->log->contract_id === $contract->id
                 && $mail->hasTo($staff->email);
         });
@@ -278,7 +294,7 @@ class PublicPortalTest extends TestCase
             'due_date' => now()->addDays(5)->format('Y-m-d'),
         ])->assertRedirect();
 
-        Mail::assertNotSent(ClientActivityMail::class);
+        Mail::assertNotQueued(ClientActivityMail::class);
     }
 
     public function test_client_cannot_attach_a_document_to_a_vendor_from_another_contract(): void

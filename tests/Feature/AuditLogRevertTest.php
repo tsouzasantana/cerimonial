@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AuditLog;
 use App\Models\Client;
 use App\Models\Contract;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -56,6 +57,35 @@ class AuditLogRevertTest extends TestCase
             ->assertRedirect(route('contracts.show', ['contract' => $contract, 'tab' => 'atividades']));
 
         $this->assertSame('Original', $contract->fresh()->notes);
+    }
+
+    public function test_reverting_a_discount_change_recalculates_the_contract_total(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $client = Client::factory()->create();
+        $contract = Contract::factory()->create(['client_id' => $client->id, 'discount' => 0]);
+        $contract->items()->create(['service_id' => Service::factory()->create()->id, 'quantity' => 1, 'unit_price' => 1000, 'total_price' => 1000]);
+        $contract->recalculateTotals();
+
+        $this->assertSame('1000.00', $contract->fresh()->total);
+
+        $contract->update(['discount' => 200]);
+        $contract->recalculateTotals();
+        $this->assertSame('800.00', $contract->fresh()->total);
+
+        $log = AuditLog::where('auditable_type', Contract::class)
+            ->where('auditable_id', $contract->id)
+            ->where('action', 'updated')
+            ->get()
+            ->firstOrFail(fn (AuditLog $log) => array_key_exists('discount', $log->changes ?? []));
+
+        $this->post(route('audit-logs.revert', $log))->assertRedirect();
+
+        $contract->refresh();
+        $this->assertSame('0.00', $contract->discount);
+        $this->assertSame('1000.00', $contract->total);
     }
 
     public function test_created_action_cannot_be_reverted(): void

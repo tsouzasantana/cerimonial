@@ -16,6 +16,7 @@ use App\Support\ChecklistQuery;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -191,9 +192,15 @@ class ContractController extends Controller
             $contract->update(['pdf_path' => $path]);
         }
 
-        Mail::to($contract->client->email)->send(new ContractPdfMail($contract));
+        try {
+            Mail::to($contract->client->email)->queue(new ContractPdfMail($contract));
+        } catch (\Throwable $e) {
+            Log::error('Falha ao enfileirar e-mail do contrato: '.$e->getMessage());
+
+            return back()->with('error', 'Não foi possível enviar o e-mail agora. Tente novamente em alguns minutos.');
+        }
 
         return redirect()->route('contracts.show', $contract)
-            ->with('success', 'Contrato enviado por e-mail para o cliente.');
+            ->with('success', 'Contrato será enviado por e-mail para o cliente em instantes.');
     }
 }

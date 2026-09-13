@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\Contract;
+use App\Models\ContractItem;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,10 +58,27 @@ class AuditLogController extends Controller
         $model->auditActionOverride = 'reverted';
         $model->save();
 
+        $this->recalculateContractTotalsIfNeeded($model);
+
         $redirectTo = $auditLog->contract_id
             ? route('contracts.show', ['contract' => $auditLog->contract_id, 'tab' => 'atividades'])
             : route('audit-logs.index');
 
         return redirect($redirectTo)->with('success', 'Alteração revertida com sucesso.');
+    }
+
+    /**
+     * Reverting a ContractItem (price/quantity) or a Contract's own discount
+     * leaves subtotal/total stale unless recalculated, since those fields
+     * are normally kept in sync by ContractItemController, not by a plain
+     * attribute revert.
+     */
+    private function recalculateContractTotalsIfNeeded(Model $model): void
+    {
+        if ($model instanceof ContractItem) {
+            $model->contract?->recalculateTotals();
+        } elseif ($model instanceof Contract) {
+            $model->recalculateTotals();
+        }
     }
 }

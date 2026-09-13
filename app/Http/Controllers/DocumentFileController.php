@@ -9,6 +9,7 @@ use App\Models\DocumentType;
 use App\Models\Vendor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -83,9 +84,15 @@ class DocumentFileController extends Controller
             return back()->with('error', 'Não há e-mail de cliente associado a este documento.');
         }
 
-        Mail::to($email)->send(new DocumentFileMail($document));
+        try {
+            Mail::to($email)->queue(new DocumentFileMail($document));
+        } catch (\Throwable $e) {
+            Log::error('Falha ao enfileirar e-mail do documento: '.$e->getMessage());
 
-        return back()->with('success', 'Documento enviado por e-mail com sucesso.');
+            return back()->with('error', 'Não foi possível enviar o e-mail agora. Tente novamente em alguns minutos.');
+        }
+
+        return back()->with('success', 'Documento será enviado por e-mail em instantes.');
     }
 
     public function destroy(DocumentFile $document): RedirectResponse

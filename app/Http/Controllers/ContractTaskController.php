@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\EnsuresContractOwnership;
 use App\Http\Requests\ContractTaskRequest;
 use App\Models\Contract;
 use App\Models\ContractTask;
@@ -12,6 +13,8 @@ use Illuminate\Validation\Rule;
 
 class ContractTaskController extends Controller
 {
+    use EnsuresContractOwnership;
+
     public function store(ContractTaskRequest $request, Contract $contract): RedirectResponse
     {
         $maxOrder = (int) $contract->tasks()->max('sort_order');
@@ -27,7 +30,7 @@ class ContractTaskController extends Controller
 
     public function update(ContractTaskRequest $request, Contract $contract, ContractTask $task): RedirectResponse
     {
-        abort_unless($task->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($task, $contract);
 
         $task->update($request->validated());
 
@@ -37,7 +40,7 @@ class ContractTaskController extends Controller
 
     public function updateStatus(Request $request, Contract $contract, ContractTask $task): JsonResponse
     {
-        abort_unless($task->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($task, $contract);
 
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(ContractTask::statusOptions()))],
@@ -54,7 +57,7 @@ class ContractTaskController extends Controller
 
     public function destroy(Contract $contract, ContractTask $task): RedirectResponse
     {
-        abort_unless($task->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($task, $contract);
 
         $task->delete();
 
@@ -65,7 +68,7 @@ class ContractTaskController extends Controller
     public function restore(Contract $contract, int $task): RedirectResponse
     {
         $task = ContractTask::withTrashed()->findOrFail($task);
-        abort_unless($task->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($task, $contract);
 
         $task->restore();
 

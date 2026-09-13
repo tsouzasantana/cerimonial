@@ -107,7 +107,22 @@ class ContractManagementTest extends TestCase
         $this->actingAs($user)->post(route('contracts.send-email', $contract))
             ->assertRedirect(route('contracts.show', $contract));
 
-        Mail::assertSent(ContractPdfMail::class);
+        Mail::assertQueued(ContractPdfMail::class);
         $this->assertNotNull($contract->fresh()->pdf_path);
+    }
+
+    public function test_sending_contract_email_shows_friendly_error_when_queueing_fails(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        $client = Client::factory()->create(['email' => 'cliente@example.com']);
+        $contract = Contract::factory()->create(['client_id' => $client->id]);
+
+        Mail::shouldReceive('to')->once()->andReturnSelf();
+        Mail::shouldReceive('queue')->once()->andThrow(new \RuntimeException('Falha ao gravar na fila'));
+
+        $this->actingAs($user)->post(route('contracts.send-email', $contract))
+            ->assertRedirect()
+            ->assertSessionHas('error');
     }
 }

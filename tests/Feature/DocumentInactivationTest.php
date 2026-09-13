@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Mail\DocumentFileMail;
+use App\Models\Client;
 use App\Models\DocumentFile;
 use App\Models\DocumentType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -110,5 +113,32 @@ class DocumentInactivationTest extends TestCase
 
         $trashedResponse = $this->actingAs($user)->get(route('documents.index', ['trashed' => 1]));
         $trashedResponse->assertSee('Documento inativo');
+    }
+
+    public function test_sending_a_document_by_email_works_when_client_has_an_email(): void
+    {
+        Mail::fake();
+        $user = User::factory()->create();
+        $client = Client::factory()->create(['email' => 'cliente@example.com']);
+        $document = DocumentFile::factory()->create(['client_id' => $client->id]);
+
+        $this->actingAs($user)->post(route('documents.send-email', $document))
+            ->assertRedirect();
+
+        Mail::assertQueued(DocumentFileMail::class);
+    }
+
+    public function test_sending_a_document_by_email_shows_friendly_error_when_queueing_fails(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create(['email' => 'cliente@example.com']);
+        $document = DocumentFile::factory()->create(['client_id' => $client->id]);
+
+        Mail::shouldReceive('to')->once()->andReturnSelf();
+        Mail::shouldReceive('queue')->once()->andThrow(new \RuntimeException('Falha ao gravar na fila'));
+
+        $this->actingAs($user)->post(route('documents.send-email', $document))
+            ->assertRedirect()
+            ->assertSessionHas('error');
     }
 }

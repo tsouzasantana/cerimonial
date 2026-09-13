@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -28,6 +29,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($routeName && str_starts_with($routeName, 'public.') && ! $request->expectsJson()) {
                 return response()->view('public.link-invalido', [], 404);
+            }
+        });
+
+        $exceptions->render(function (TooManyRequestsHttpException $e, Request $request) {
+            if ($request->route()?->getName() === 'public.verify' && ! $request->expectsJson()) {
+                return redirect()->route('public.gate', $request->route('token'))
+                    ->withErrors(['document' => 'Muitas tentativas. Aguarde um minuto e tente novamente.']);
             }
         });
     })->create();

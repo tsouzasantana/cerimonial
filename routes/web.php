@@ -95,7 +95,9 @@ Route::middleware('auth')->group(function () {
 
 Route::prefix('portal/{token}')->name('public.')->group(function () {
     Route::get('/', [PublicContractController::class, 'gate'])->name('gate');
-    Route::post('/verify', [PublicContractController::class, 'verify'])->name('verify');
+    Route::post('/verify', [PublicContractController::class, 'verify'])
+        ->middleware('throttle:public-verify')
+        ->name('verify');
 
     Route::middleware('public.contract')->group(function () {
         Route::get('/contrato', [PublicContractController::class, 'show'])->name('show');

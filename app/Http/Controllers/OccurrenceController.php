@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\EnsuresContractOwnership;
 use App\Http\Requests\OccurrenceRequest;
 use App\Models\Contract;
 use App\Models\Occurrence;
@@ -12,9 +13,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OccurrenceController extends Controller
 {
+    use EnsuresContractOwnership;
+
     public function downloadAttachment(Contract $contract, Occurrence $occurrence): StreamedResponse
     {
-        abort_unless($occurrence->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($occurrence, $contract);
         abort_unless($occurrence->attachment_path && Storage::disk('local')->exists($occurrence->attachment_path), 404);
 
         return Storage::disk('local')->download($occurrence->attachment_path, $occurrence->attachment_original_name);
@@ -54,7 +57,7 @@ class OccurrenceController extends Controller
 
     public function destroy(Contract $contract, Occurrence $occurrence): RedirectResponse
     {
-        abort_unless($occurrence->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($occurrence, $contract);
 
         $occurrence->delete();
 
@@ -65,7 +68,7 @@ class OccurrenceController extends Controller
     public function restore(Contract $contract, int $occurrence): RedirectResponse
     {
         $occurrence = Occurrence::withTrashed()->findOrFail($occurrence);
-        abort_unless($occurrence->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($occurrence, $contract);
 
         $occurrence->restore();
 

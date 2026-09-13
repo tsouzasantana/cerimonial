@@ -76,9 +76,9 @@ trait Auditable
 
         try {
             $log->loadMissing('contract.client');
-            Mail::to($recipients)->send(new ClientActivityMail($log));
+            Mail::to($recipients)->queue(new ClientActivityMail($log));
         } catch (\Throwable $e) {
-            Log::warning('Falha ao enviar notificação de atividade do cliente: '.$e->getMessage());
+            Log::warning('Falha ao enfileirar notificação de atividade do cliente: '.$e->getMessage());
         }
     }
 

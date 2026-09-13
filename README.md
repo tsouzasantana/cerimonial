@@ -246,6 +246,17 @@ Como os documentos enviados ficam fora do dump do banco, inclua também a
 pasta `storage/app/private` numa rotina de backup de arquivos (ex: backup
 de conta completo do próprio cPanel).
 
+### Envio de e-mails em fila
+
+Os e-mails da aplicação (PDF do contrato, envio de documento, notificação de
+atividade do cliente) são enfileirados (`QUEUE_CONNECTION=database`) em vez
+de enviados na hora, para não travar a página esperando o servidor de SMTP
+responder. A mesma entrada de cron do `schedule:run` acima já processa essa
+fila automaticamente a cada minuto (`Schedule::command('queue:work
+--stop-when-empty --max-time=50')` em `routes/console.php`) — não é
+necessário configurar um worker (`queue:work`) rodando permanentemente, o
+que normalmente não é possível em hospedagem compartilhada.
+
 ## Testes
 
 ```bash

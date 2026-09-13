@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\EnsuresContractOwnership;
 use App\Http\Requests\VendorRequest;
 use App\Models\Contract;
 use App\Models\Vendor;
@@ -10,6 +11,8 @@ use Illuminate\Http\RedirectResponse;
 
 class VendorController extends Controller
 {
+    use EnsuresContractOwnership;
+
     public function store(VendorRequest $request, Contract $contract): RedirectResponse
     {
         $data = $request->validated();
@@ -28,7 +31,7 @@ class VendorController extends Controller
 
     public function update(VendorRequest $request, Contract $contract, Vendor $vendor): RedirectResponse
     {
-        abort_unless($vendor->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($vendor, $contract);
 
         $data = $request->validated();
         $data['vendor_service_type_id'] = VendorServiceType::resolveId(
@@ -45,7 +48,7 @@ class VendorController extends Controller
 
     public function destroy(Contract $contract, Vendor $vendor): RedirectResponse
     {
-        abort_unless($vendor->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($vendor, $contract);
 
         $vendor->delete();
 
@@ -56,7 +59,7 @@ class VendorController extends Controller
     public function restore(Contract $contract, int $vendor): RedirectResponse
     {
         $vendor = Vendor::withTrashed()->findOrFail($vendor);
-        abort_unless($vendor->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($vendor, $contract);
 
         $vendor->restore();
 

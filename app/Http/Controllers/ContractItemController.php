@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\EnsuresContractOwnership;
 use App\Http\Requests\ContractItemRequest;
 use App\Models\Contract;
 use App\Models\ContractItem;
@@ -10,6 +11,8 @@ use Illuminate\Http\RedirectResponse;
 
 class ContractItemController extends Controller
 {
+    use EnsuresContractOwnership;
+
     public function store(ContractItemRequest $request, Contract $contract): RedirectResponse
     {
         $service = Service::findOrFail($request->validated('service_id'));
@@ -30,7 +33,7 @@ class ContractItemController extends Controller
 
     public function destroy(Contract $contract, ContractItem $item): RedirectResponse
     {
-        abort_unless($item->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($item, $contract);
 
         $item->delete();
         $contract->recalculateTotals();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\EnsuresContractOwnership;
 use App\Http\Requests\InstallmentBatchRequest;
 use App\Http\Requests\InstallmentRequest;
 use App\Models\Contract;
@@ -11,6 +12,8 @@ use Illuminate\Support\Carbon;
 
 class InstallmentController extends Controller
 {
+    use EnsuresContractOwnership;
+
     public function store(InstallmentRequest $request, Contract $contract): RedirectResponse
     {
         $contract->installments()->create($request->validated());
@@ -51,7 +54,7 @@ class InstallmentController extends Controller
 
     public function update(InstallmentRequest $request, Contract $contract, Installment $installment): RedirectResponse
     {
-        abort_unless($installment->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($installment, $contract);
 
         $data = $request->validated();
 
@@ -67,7 +70,7 @@ class InstallmentController extends Controller
 
     public function destroy(Contract $contract, Installment $installment): RedirectResponse
     {
-        abort_unless($installment->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($installment, $contract);
 
         $installment->delete();
 
@@ -78,7 +81,7 @@ class InstallmentController extends Controller
     public function restore(Contract $contract, int $installment): RedirectResponse
     {
         $installment = Installment::withTrashed()->findOrFail($installment);
-        abort_unless($installment->contract_id === $contract->id, 404);
+        $this->ensureBelongsToContract($installment, $contract);
 
         $installment->restore();
 
