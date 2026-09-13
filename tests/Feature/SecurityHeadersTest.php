@@ -15,6 +15,7 @@ class SecurityHeadersTest extends TestCase
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->assertHeaderMissing('Strict-Transport-Security');
         $this->assertStringContainsString("default-src 'self'", $response->headers->get('Content-Security-Policy'));
+        $this->assertStringContainsString("connect-src 'self' https://viacep.com.br", $response->headers->get('Content-Security-Policy'));
     }
 
     public function test_hsts_header_is_only_sent_over_https(): void

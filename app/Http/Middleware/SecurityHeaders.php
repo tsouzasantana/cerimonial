@@ -13,7 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
  * and on inline `onclick`/`onsubmit` confirmation handlers throughout the
  * views — tightening that further would need removing those first. Even so,
  * it still blocks loading scripts/styles/frames from arbitrary third-party
- * origins, which is the more common exploitation path.
+ * origins, which is the more common exploitation path. connect-src allows
+ * viacep.com.br for the client address autofill-by-CEP feature.
  */
 class SecurityHeaders
 {
@@ -32,6 +33,7 @@ class SecurityHeaders
             "style-src 'self' 'unsafe-inline' https://fonts.bunny.net",
             "font-src 'self' https://fonts.bunny.net",
             "img-src 'self' data:",
+            "connect-src 'self' https://viacep.com.br",
             "object-src 'none'",
             "base-uri 'self'",
             "frame-ancestors 'self'",
