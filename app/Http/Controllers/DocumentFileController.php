@@ -20,10 +20,16 @@ class DocumentFileController extends Controller
     public function index(Request $request): View
     {
         $documents = DocumentFile::query()
-            ->with(['client', 'contract', 'vendor', 'documentType'])
+            ->with(['client', 'contract.client', 'vendor', 'documentType'])
             ->when($request->boolean('trashed'), fn ($query) => $query->onlyTrashed())
             ->when($request->filled('document_type_id'), fn ($query) => $query->where('document_type_id', $request->integer('document_type_id')))
-            ->when($request->filled('search'), fn ($query) => $query->where('title', 'like', '%'.$request->string('search').'%'))
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $term = '%'.$request->string('search').'%';
+                $query->where(function ($query) use ($term) {
+                    $query->where('title', 'like', $term)
+                        ->orWhereHas('contract.client', fn ($query) => $query->where('name', 'like', $term));
+                });
+            })
             ->orderByDesc('created_at')
             ->paginate(20)
             ->withQueryString();

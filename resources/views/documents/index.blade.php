@@ -10,7 +10,7 @@
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <form method="GET" class="flex flex-wrap items-center gap-3 mb-4">
-                    <x-text-input name="search" type="text" placeholder="Buscar por título" class="max-w-sm" :value="request('search')" />
+                    <x-text-input name="search" type="text" placeholder="Buscar por título ou cliente" class="max-w-sm" :value="request('search')" />
                     <select name="document_type_id" class="border-gray-300 rounded-md shadow-sm text-sm" onchange="this.form.submit()">
                         <option value="">Todos os tipos</option>
                         @foreach ($documentTypes as $type)
@@ -47,10 +47,13 @@
                                 </td>
                                 <td class="py-2 pr-3 text-gray-600">{{ $document->documentType->name }}</td>
                                 <td class="py-2 pr-3 text-gray-600">
-                                    @if ($document->vendor)
-                                        <a href="{{ route('contracts.show', ['contract' => $document->contract, 'tab' => 'fornecedores']) }}" class="hover:text-brand-800">Fornecedor: {{ $document->vendor->name }}</a>
-                                    @elseif ($document->contract)
-                                        <a href="{{ route('contracts.show', $document->contract) }}" class="hover:text-brand-800">Contrato #{{ $document->contract->id }}</a>
+                                    @if ($document->contract)
+                                        <a href="{{ route('contracts.show', ['contract' => $document->contract, 'tab' => $document->vendor ? 'fornecedores' : 'resumo']) }}" class="hover:text-brand-800">
+                                            {{ $document->contract->client->name }} &middot; {{ $document->contract->event_date->format('d/m/Y') }}
+                                        </a>
+                                        @if ($document->vendor)
+                                            <span class="text-xs text-gray-400 block">Fornecedor: {{ $document->vendor->name }}</span>
+                                        @endif
                                     @elseif ($document->client)
                                         <a href="{{ route('clients.show', $document->client) }}" class="hover:text-brand-800">{{ $document->client->name }}</a>
                                     @else

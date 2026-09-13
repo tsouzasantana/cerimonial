@@ -10,8 +10,9 @@
 @endphp
 
 <form method="POST" action="{{ $formAction }}" enctype="multipart/form-data"
-        x-data="{ mode: 'file' }" class="mb-6 space-y-3">
+        x-data="{ mode: 'file' }" class="mb-6 space-y-3 border border-gray-200 rounded-lg p-4">
     @csrf
+    <h4 class="text-sm font-medium text-gray-900">Novo documento</h4>
     @if ($clientId)
         <input type="hidden" name="client_id" value="{{ $clientId }}">
     @endif
