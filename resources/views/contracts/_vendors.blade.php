@@ -166,7 +166,7 @@
                             </div>
                             <div>
                                 <x-input-label for="vendor-{{ $vendor->id }}-installment-amount" value="Valor" />
-                                <x-currency-input name="amount" class="mt-1 block w-32" required />
+                                <x-currency-input id="vendor-{{ $vendor->id }}-installment-amount" name="amount" class="mt-1 block w-32" required />
                                 @if ($hasInstallmentErrors)
                                     <x-input-error :messages="$errors->get('amount')" class="mt-2" />
                                 @endif
@@ -191,7 +191,7 @@
                                 <input type="hidden" name="_vendor_id" value="{{ $vendor->id }}">
                                 <div>
                                     <x-input-label for="vendor-{{ $vendor->id }}-total_amount" value="Valor total" />
-                                    <x-currency-input name="total_amount" class="mt-1 block w-32" required />
+                                    <x-currency-input id="vendor-{{ $vendor->id }}-total_amount" name="total_amount" class="mt-1 block w-32" required />
                                     @if ($hasBatchErrors)
                                         <x-input-error :messages="$errors->get('total_amount')" class="mt-2" />
                                     @endif

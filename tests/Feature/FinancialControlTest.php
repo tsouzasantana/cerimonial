@@ -109,6 +109,29 @@ class FinancialControlTest extends TestCase
         $this->assertStringContainsString('O campo valor é obrigatório.', $html);
     }
 
+    public function test_each_vendors_installment_amount_field_has_a_unique_id(): void
+    {
+        // Regression test: the "Valor" field's id used to default to the
+        // component's name ("amount"/"total_amount"), so with two or more
+        // vendors on the same contract every vendor's form shared the same
+        // id. The browser only updates the FIRST element with a given id,
+        // so typing an amount for any vendor other than the first silently
+        // left that vendor's own hidden "amount" input empty, failing
+        // validation with no clue why.
+        $user = User::factory()->create();
+        $contract = Contract::factory()->create();
+        $vendorOne = Vendor::factory()->create(['contract_id' => $contract->id]);
+        $vendorTwo = Vendor::factory()->create(['contract_id' => $contract->id]);
+
+        $response = $this->actingAs($user)->get(route('contracts.show', ['contract' => $contract, 'tab' => 'fornecedores']));
+
+        $response->assertOk();
+        $response->assertSee("id=\"vendor-{$vendorOne->id}-installment-amount\"", false);
+        $response->assertSee("id=\"vendor-{$vendorTwo->id}-installment-amount\"", false);
+        $response->assertSee("id=\"vendor-{$vendorOne->id}-total_amount\"", false);
+        $response->assertSee("id=\"vendor-{$vendorTwo->id}-total_amount\"", false);
+    }
+
     public function test_vendor_installment_from_another_contract_is_rejected(): void
     {
         $user = User::factory()->create();
