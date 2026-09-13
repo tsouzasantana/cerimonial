@@ -51,6 +51,7 @@ class Vendor extends Model
         'created_by',
         'name',
         'document',
+        'contract_value',
         'notes',
         'status',
         'payment_status',
@@ -60,6 +61,7 @@ class Vendor extends Model
     {
         return [
             'document' => 'encrypted',
+            'contract_value' => 'decimal:2',
         ];
     }
 
@@ -81,5 +83,10 @@ class Vendor extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(DocumentFile::class);
+    }
+
+    public function installments(): HasMany
+    {
+        return $this->hasMany(VendorInstallment::class);
     }
 }

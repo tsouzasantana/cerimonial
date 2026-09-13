@@ -10,6 +10,7 @@ use App\Http\Controllers\ContractTaskController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentFileController;
 use App\Http\Controllers\DocumentTypeController;
+use App\Http\Controllers\FinancialEntryController;
 use App\Http\Controllers\InstallmentController;
 use App\Http\Controllers\OccurrenceController;
 use App\Http\Controllers\OccurrenceTypeController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VendorInstallmentController;
 use App\Http\Controllers\VendorServiceTypeController;
 use Illuminate\Support\Facades\Route;
 
@@ -84,6 +86,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('contracts/{contract}/vendors/{vendor}', [VendorController::class, 'destroy'])->name('vendors.destroy');
     Route::post('contracts/{contract}/vendors/{vendor}/restore', [VendorController::class, 'restore'])->name('vendors.restore');
 
+    Route::post('contracts/{contract}/vendors/{vendor}/installments', [VendorInstallmentController::class, 'store'])->name('vendor-installments.store');
+    Route::post('contracts/{contract}/vendors/{vendor}/installments/batch', [VendorInstallmentController::class, 'storeBatch'])->name('vendor-installments.store-batch');
+    Route::put('contracts/{contract}/vendors/{vendor}/installments/{installment}', [VendorInstallmentController::class, 'update'])->name('vendor-installments.update');
+    Route::delete('contracts/{contract}/vendors/{vendor}/installments/{installment}', [VendorInstallmentController::class, 'destroy'])->name('vendor-installments.destroy');
+
+    Route::post('contracts/{contract}/financial-entries', [FinancialEntryController::class, 'store'])->name('financial-entries.store');
+    Route::put('contracts/{contract}/financial-entries/{financialEntry}', [FinancialEntryController::class, 'update'])->name('financial-entries.update');
+    Route::delete('contracts/{contract}/financial-entries/{financialEntry}', [FinancialEntryController::class, 'destroy'])->name('financial-entries.destroy');
+
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
 
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
@@ -111,6 +122,13 @@ Route::prefix('portal/{token}')->name('public.')->group(function () {
         Route::post('/vendors', [PublicContractController::class, 'storeVendor'])->name('vendors.store');
         Route::put('/vendors/{vendor}', [PublicContractController::class, 'updateVendor'])->name('vendors.update');
         Route::delete('/vendors/{vendor}', [PublicContractController::class, 'destroyVendor'])->name('vendors.destroy');
+        Route::post('/vendors/{vendor}/installments', [PublicContractController::class, 'storeVendorInstallment'])->name('vendors.installments.store');
+        Route::post('/vendors/{vendor}/installments/batch', [PublicContractController::class, 'storeVendorInstallmentBatch'])->name('vendors.installments.store-batch');
+        Route::put('/vendors/{vendor}/installments/{installment}', [PublicContractController::class, 'updateVendorInstallment'])->name('vendors.installments.update');
+        Route::delete('/vendors/{vendor}/installments/{installment}', [PublicContractController::class, 'destroyVendorInstallment'])->name('vendors.installments.destroy');
+        Route::post('/financial-entries', [PublicContractController::class, 'storeFinancialEntry'])->name('financial-entries.store');
+        Route::put('/financial-entries/{financialEntry}', [PublicContractController::class, 'updateFinancialEntry'])->name('financial-entries.update');
+        Route::delete('/financial-entries/{financialEntry}', [PublicContractController::class, 'destroyFinancialEntry'])->name('financial-entries.destroy');
     });
 });
 

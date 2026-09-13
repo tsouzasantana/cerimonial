@@ -79,7 +79,8 @@ class ContractController extends Controller
             'documents.documentType',
             'occurrences' => fn ($q) => $q->with('type')->orderByDesc('occurrence_date'),
             'tasks',
-            'vendors' => fn ($q) => $q->with(['vendorServiceType', 'documents.documentType']),
+            'vendors' => fn ($q) => $q->with(['vendorServiceType', 'documents.documentType', 'installments' => fn ($q) => $q->orderBy('number')]),
+            'financialEntries' => fn ($q) => $q->with('vendor')->orderByDesc('due_date'),
         ]);
 
         $services = Service::where('active', true)->orderBy('name')->get();

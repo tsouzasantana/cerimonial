@@ -19,6 +19,7 @@ class VendorRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'document' => ['nullable', 'string', 'max:20', new CpfOrCnpj],
+            'contract_value' => ['nullable', 'numeric', 'min:0'],
             'vendor_service_type_id' => ['required_without:new_service_type', 'nullable', 'exists:vendor_service_types,id'],
             'new_service_type' => ['required_without:vendor_service_type_id', 'nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],

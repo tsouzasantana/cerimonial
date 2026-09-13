@@ -4,20 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\EnsuresContractOwnership;
 use App\Http\Requests\ContractTaskRequest;
+use App\Http\Requests\FinancialEntryRequest;
 use App\Http\Requests\PublicDocumentRequest;
 use App\Http\Requests\PublicTaskUpdateRequest;
 use App\Http\Requests\PublicVendorUpdateRequest;
+use App\Http\Requests\VendorInstallmentBatchRequest;
+use App\Http\Requests\VendorInstallmentRequest;
 use App\Http\Requests\VendorRequest;
 use App\Models\Contract;
 use App\Models\ContractTask;
 use App\Models\DocumentFile;
 use App\Models\DocumentType;
+use App\Models\FinancialEntry;
+use App\Models\Installment;
 use App\Models\Vendor;
+use App\Models\VendorInstallment;
 use App\Models\VendorServiceType;
 use App\Support\ChecklistQuery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -78,7 +85,8 @@ class PublicContractController extends Controller
             'documents.documentType',
             'occurrences' => fn ($q) => $q->with('type')->orderByDesc('occurrence_date'),
             'tasks',
-            'vendors' => fn ($q) => $q->with(['vendorServiceType', 'documents.documentType']),
+            'vendors' => fn ($q) => $q->with(['vendorServiceType', 'documents.documentType', 'installments' => fn ($q) => $q->orderBy('number')]),
+            'financialEntries' => fn ($q) => $q->with('vendor')->orderByDesc('due_date'),
         ]);
 
         $documentTypes = DocumentType::orderBy('name')->get();
@@ -228,5 +236,134 @@ class PublicContractController extends Controller
 
         return redirect()->route('public.show', ['token' => $token, 'tab' => $vendor ? 'fornecedores' : 'documentos'])
             ->with('success', 'Documento enviado com sucesso.');
+    }
+
+    private function vendorForContract(int $vendorId, Contract $contract): Vendor
+    {
+        $vendor = Vendor::findOrFail($vendorId);
+        $this->ensureBelongsToContract($vendor, $contract);
+
+        return $vendor;
+    }
+
+    public function storeVendorInstallment(VendorInstallmentRequest $request, string $token, Vendor $vendor): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        $this->ensureBelongsToContract($vendor, $contract);
+
+        $vendor->installments()->create($request->validated());
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'fornecedores'])
+            ->with('success', 'Parcela do fornecedor adicionada com sucesso.');
+    }
+
+    public function storeVendorInstallmentBatch(VendorInstallmentBatchRequest $request, string $token, Vendor $vendor): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        $this->ensureBelongsToContract($vendor, $contract);
+
+        $data = $request->validated();
+
+        $count = (int) $data['installment_count'];
+        $totalCents = (int) round(((float) $data['total_amount']) * 100);
+        $baseCents = intdiv($totalCents, $count);
+        $remainderCents = $totalCents - ($baseCents * $count);
+
+        $nextNumber = (int) ($vendor->installments()->max('number') ?? 0) + 1;
+        $firstDueDate = Carbon::parse($data['first_due_date']);
+
+        $installments = [];
+        for ($i = 0; $i < $count; $i++) {
+            $amountCents = $baseCents + ($i === $count - 1 ? $remainderCents : 0);
+
+            $installments[] = [
+                'number' => $nextNumber + $i,
+                'amount' => $amountCents / 100,
+                'due_date' => $firstDueDate->copy()->addMonthsNoOverflow($i * (int) $data['interval_months']),
+                'status' => Installment::STATUS_PENDENTE,
+            ];
+        }
+
+        $vendor->installments()->createMany($installments);
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'fornecedores'])
+            ->with('success', "{$count} parcelas do fornecedor geradas com sucesso.");
+    }
+
+    public function updateVendorInstallment(VendorInstallmentRequest $request, string $token, Vendor $vendor, VendorInstallment $installment): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        $this->ensureBelongsToContract($vendor, $contract);
+        abort_unless($installment->vendor_id === $vendor->id, 404);
+
+        $data = $request->validated();
+
+        if ($data['status'] === Installment::STATUS_PAGO && empty($data['paid_at'])) {
+            $data['paid_at'] = now()->toDateString();
+        }
+
+        $installment->update($data);
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'fornecedores'])
+            ->with('success', 'Parcela do fornecedor atualizada com sucesso.');
+    }
+
+    public function destroyVendorInstallment(Request $request, string $token, Vendor $vendor, VendorInstallment $installment): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        $this->ensureBelongsToContract($vendor, $contract);
+        abort_unless($installment->vendor_id === $vendor->id, 404);
+
+        $installment->delete();
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'fornecedores'])
+            ->with('success', 'Parcela do fornecedor inativada com sucesso.');
+    }
+
+    public function storeFinancialEntry(FinancialEntryRequest $request, string $token): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        $data = $request->validated();
+
+        if (! empty($data['vendor_id'])) {
+            $this->vendorForContract($data['vendor_id'], $contract);
+        }
+
+        $contract->financialEntries()->create($data);
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'financeiro'])
+            ->with('success', 'Lançamento financeiro adicionado com sucesso.');
+    }
+
+    public function updateFinancialEntry(FinancialEntryRequest $request, string $token, FinancialEntry $financialEntry): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        $this->ensureBelongsToContract($financialEntry, $contract);
+
+        $data = $request->validated();
+
+        if (! empty($data['vendor_id'])) {
+            $this->vendorForContract($data['vendor_id'], $contract);
+        }
+
+        if ($data['status'] === Installment::STATUS_PAGO && empty($data['paid_at'])) {
+            $data['paid_at'] = now()->toDateString();
+        }
+
+        $financialEntry->update($data);
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'financeiro'])
+            ->with('success', 'Lançamento financeiro atualizado com sucesso.');
+    }
+
+    public function destroyFinancialEntry(Request $request, string $token, FinancialEntry $financialEntry): RedirectResponse
+    {
+        $contract = $request->attributes->get('publicContract');
+        $this->ensureBelongsToContract($financialEntry, $contract);
+
+        $financialEntry->delete();
+
+        return redirect()->route('public.show', ['token' => $token, 'tab' => 'financeiro'])
+            ->with('success', 'Lançamento financeiro inativado com sucesso.');
     }
 }

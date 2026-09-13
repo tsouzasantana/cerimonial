@@ -25,7 +25,7 @@
 
             <div class="border-b border-gray-200">
                 <nav class="-mb-px flex flex-wrap gap-6">
-                    @foreach (['resumo' => 'Serviços e pagamentos', 'documentos' => 'Documentos', 'ocorrencias' => 'Ocorrências', 'checklist' => 'Checklist', 'fornecedores' => 'Fornecedores'] as $key => $label)
+                    @foreach (['resumo' => 'Serviços e pagamentos', 'financeiro' => 'Controle financeiro', 'documentos' => 'Documentos', 'ocorrencias' => 'Ocorrências', 'checklist' => 'Checklist', 'fornecedores' => 'Fornecedores'] as $key => $label)
                         <button type="button" @click="tab = '{{ $key }}'"
                                 :class="tab === '{{ $key }}' ? 'border-brand-500 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
@@ -99,6 +99,12 @@
                     </table>
                     </div>
                 </div>
+            </div>
+
+            {{-- Controle financeiro --}}
+            <div x-show="tab === 'financeiro'" class="bg-white shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Controle financeiro</h3>
+                @include('contracts._financial', ['isPublic' => true])
             </div>
 
             {{-- Documentos --}}

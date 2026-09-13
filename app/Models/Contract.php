@@ -130,6 +130,11 @@ class Contract extends Model
         return $this->hasMany(Vendor::class);
     }
 
+    public function financialEntries(): HasMany
+    {
+        return $this->hasMany(FinancialEntry::class);
+    }
+
     /**
      * Re-derives discount from discount_type/discount_value against the
      * current subtotal (not just from whatever "discount" already holds),
