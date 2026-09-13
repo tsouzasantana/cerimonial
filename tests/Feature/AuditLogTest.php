@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
 use App\Models\Client;
 use App\Models\Contract;
+use App\Models\ContractTask;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -43,6 +45,32 @@ class AuditLogTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee('Via Admin');
+    }
+
+    public function test_public_portal_action_is_attributed_to_the_client_even_when_staff_is_also_logged_in(): void
+    {
+        $staff = User::factory()->create(['name' => 'Sandrele Reis']);
+        $client = Client::factory()->create(['name' => 'Cliente do Portal', 'document' => '123.456.789-09']);
+        $contract = Contract::factory()->create(['client_id' => $client->id]);
+        $task = ContractTask::factory()->create(['contract_id' => $contract->id, 'status' => ContractTask::STATUS_A_INICIAR]);
+
+        // Staff stays logged in (e.g. previewing the client's own link in the
+        // same browser) while the request itself hits the public portal.
+        $this->actingAs($staff);
+        $this->post(route('public.verify', $contract->public_token), ['document' => $client->document]);
+
+        $this->patch(route('public.tasks.status', ['token' => $contract->public_token, 'task' => $task]), [
+            'status' => ContractTask::STATUS_CONCLUIDA,
+        ])->assertOk();
+
+        $log = AuditLog::where('auditable_type', ContractTask::class)
+            ->where('auditable_id', $task->id)
+            ->where('action', 'updated')
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->assertSame('client', $log->actor_type);
+        $this->assertSame('Cliente do Portal', $log->actor_name);
     }
 
     public function test_contract_activity_tab_shows_only_that_contracts_logs(): void
