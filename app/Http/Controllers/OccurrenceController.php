@@ -41,7 +41,7 @@ class OccurrenceController extends Controller
             'user_id' => $request->user()->id,
             'occurrence_date' => $data['occurrence_date'],
             'deadline' => $data['deadline'] ?? null,
-            'description' => $data['description'],
+            'description' => $data['description'] ?? null,
             'attachment_path' => $path,
             'attachment_original_name' => $originalName,
         ]);

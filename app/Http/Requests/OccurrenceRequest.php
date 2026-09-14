@@ -17,7 +17,7 @@ class OccurrenceRequest extends FormRequest
             'occurrence_type_id' => ['required', 'exists:occurrence_types,id'],
             'occurrence_date' => ['required', 'date'],
             'deadline' => ['nullable', 'date'],
-            'description' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
             'attachment' => ['nullable', 'file', 'max:20480'],
         ];
     }

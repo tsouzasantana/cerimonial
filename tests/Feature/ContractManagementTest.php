@@ -136,6 +136,44 @@ class ContractManagementTest extends TestCase
         $this->assertEquals(Contract::STATUS_ATIVO, $contract->fresh()->status);
     }
 
+    public function test_an_occurrence_can_be_registered_without_a_description(): void
+    {
+        $user = User::factory()->create();
+        $contract = Contract::factory()->create();
+        $type = OccurrenceType::factory()->create();
+
+        $this->actingAs($user)->post(route('occurrences.store', $contract), [
+            'occurrence_type_id' => $type->id,
+            'occurrence_date' => now()->format('Y-m-d'),
+        ])->assertRedirect(route('contracts.show', ['contract' => $contract, 'tab' => 'ocorrencias']));
+
+        $this->assertDatabaseHas('occurrences', [
+            'contract_id' => $contract->id,
+            'occurrence_type_id' => $type->id,
+            'description' => null,
+        ]);
+    }
+
+    public function test_contract_is_considered_signed_from_the_earliest_signing_occurrence(): void
+    {
+        $user = User::factory()->create();
+        $contract = Contract::factory()->create();
+        $type = OccurrenceType::factory()->create(['name' => 'Contrato assinado']);
+
+        $this->assertNull($contract->signedAt());
+
+        $this->actingAs($user)->post(route('occurrences.store', $contract), [
+            'occurrence_type_id' => $type->id,
+            'occurrence_date' => '2026-03-15',
+        ]);
+        $this->actingAs($user)->post(route('occurrences.store', $contract), [
+            'occurrence_type_id' => $type->id,
+            'occurrence_date' => '2026-02-01',
+        ]);
+
+        $this->assertSame('2026-02-01', $contract->fresh()->signedAt()->format('Y-m-d'));
+    }
+
     public function test_generating_pdf_stores_file_and_updates_contract(): void
     {
         Storage::fake('local');

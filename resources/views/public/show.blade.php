@@ -121,7 +121,9 @@
                         @foreach ($contract->occurrences as $occurrence)
                             <li class="py-3">
                                 <p class="text-sm font-medium text-gray-900">{{ $occurrence->type->name }} &mdash; {{ $occurrence->occurrence_date->format('d/m/Y') }}</p>
-                                <p class="text-sm text-gray-600">{{ $occurrence->description }}</p>
+                                @if ($occurrence->description)
+                                    <p class="text-sm text-gray-600">{{ $occurrence->description }}</p>
+                                @endif
                             </li>
                         @endforeach
                     </ul>

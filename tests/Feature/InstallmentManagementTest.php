@@ -92,4 +92,47 @@ class InstallmentManagementTest extends TestCase
             'interval_months' => 1,
         ])->assertRedirect(route('login'));
     }
+
+    public function test_contract_paid_remaining_and_uninvoiced_installment_balances_are_computed(): void
+    {
+        $contract = $this->contract();
+        $contract->update(['subtotal' => 1000, 'total' => 1000]);
+        Installment::factory()->create(['contract_id' => $contract->id, 'amount' => 300, 'status' => Installment::STATUS_PAGO]);
+        Installment::factory()->create(['contract_id' => $contract->id, 'amount' => 200, 'status' => Installment::STATUS_PENDENTE]);
+
+        $contract->refresh();
+
+        $this->assertSame(300.0, $contract->paidInstallmentsTotal());
+        $this->assertSame(700.0, $contract->remainingInstallmentsBalance());
+        $this->assertSame(500.0, $contract->uninvoicedInstallmentsBalance());
+    }
+
+    public function test_resumo_tab_shows_installment_payment_summary(): void
+    {
+        $user = User::factory()->create();
+        $contract = $this->contract();
+        $contract->update(['subtotal' => 1000, 'total' => 1000]);
+        Installment::factory()->create(['contract_id' => $contract->id, 'amount' => 300, 'status' => Installment::STATUS_PAGO]);
+
+        $response = $this->actingAs($user)->get(route('contracts.show', ['contract' => $contract, 'tab' => 'resumo']));
+
+        $response->assertOk();
+        $response->assertSee('Valor pago');
+        $response->assertSee('Valor a pagar');
+        $response->assertSee('Saldo a lançar');
+        $response->assertSee('700,00');
+    }
+
+    public function test_resumo_tab_hides_uninvoiced_balance_when_fully_itemized(): void
+    {
+        $user = User::factory()->create();
+        $contract = $this->contract();
+        $contract->update(['subtotal' => 1000, 'total' => 1000]);
+        Installment::factory()->create(['contract_id' => $contract->id, 'amount' => 1000, 'status' => Installment::STATUS_PENDENTE]);
+
+        $response = $this->actingAs($user)->get(route('contracts.show', ['contract' => $contract, 'tab' => 'resumo']));
+
+        $response->assertOk();
+        $response->assertDontSee('Saldo a lançar');
+    }
 }

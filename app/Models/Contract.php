@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class Contract extends Model
@@ -183,5 +184,42 @@ class Contract extends Model
     public function regeneratePublicToken(): void
     {
         $this->forceFill(['public_token' => Str::random(48)])->save();
+    }
+
+    /**
+     * The date the contract was actually signed: the earliest "Contrato
+     * assinado" occurrence, so registering it is enough without editing
+     * signed_at by hand. Falls back to the manually-set signed_at for
+     * contracts signed before an occurrence was recorded.
+     */
+    public function signedAt(): ?Carbon
+    {
+        $fromOccurrence = $this->occurrences()
+            ->whereHas('type', fn ($query) => $query->where('name', 'like', '%assinado%'))
+            ->orderBy('occurrence_date')
+            ->value('occurrence_date');
+
+        return $fromOccurrence ?? $this->signed_at;
+    }
+
+    public function paidInstallmentsTotal(): float
+    {
+        return (float) $this->installments()->where('status', Installment::STATUS_PAGO)->sum('amount');
+    }
+
+    public function remainingInstallmentsBalance(): float
+    {
+        return max(0, (float) $this->total - $this->paidInstallmentsTotal());
+    }
+
+    /**
+     * Part of the contract total that hasn't been broken into an
+     * installment yet (paid or not), mirroring Vendor::uninvoicedBalance().
+     */
+    public function uninvoicedInstallmentsBalance(): float
+    {
+        $itemizedTotal = (float) $this->installments()->sum('amount');
+
+        return max(0, (float) $this->total - $itemizedTotal);
     }
 }

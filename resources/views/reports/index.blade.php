@@ -64,7 +64,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
                     <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">Novos contratos por mês</h4>
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Novos contratos cadastrados por mês</h4>
                         @include('reports._bar-chart', ['series' => $contratos['novos_por_mes']])
                     </div>
                     <div>
@@ -131,7 +131,7 @@
                         <p class="text-xl font-semibold text-gray-900">{{ $clientes['total_ativos'] }}</p>
                     </div>
                 </div>
-                <h4 class="text-sm font-medium text-gray-700 mb-2">Novos clientes por mês</h4>
+                <h4 class="text-sm font-medium text-gray-700 mb-2">Novos clientes cadastrados por mês</h4>
                 @include('reports._bar-chart', ['series' => $clientes['novos_por_mes']])
             </section>
         </div>

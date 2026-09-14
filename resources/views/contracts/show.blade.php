@@ -27,7 +27,7 @@
                         <div><dt class="text-gray-500">Status</dt><dd class="mt-1"><x-status-badge :variant="$contract->statusBadgeVariant()">{{ Contract::statusOptions()[$contract->status] ?? $contract->status }}</x-status-badge></dd></div>
                         <div><dt class="text-gray-500">Data do evento</dt><dd class="text-gray-900">{{ $contract->event_date->format('d/m/Y') }}</dd></div>
                         <div><dt class="text-gray-500">Local</dt><dd class="text-gray-900">{{ $contract->event_location ?: '—' }}</dd></div>
-                        <div><dt class="text-gray-500">Assinado em</dt><dd class="text-gray-900">{{ optional($contract->signed_at)->format('d/m/Y') ?: 'Não assinado' }}</dd></div>
+                        <div><dt class="text-gray-500">Assinado em</dt><dd class="text-gray-900">{{ optional($contract->signedAt())->format('d/m/Y') ?: 'Não assinado' }}</dd></div>
                     </dl>
                     <div class="flex flex-col gap-2">
                         <form method="POST" action="{{ route('contracts.pdf', $contract) }}">
@@ -183,6 +183,28 @@
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Parcelas de pagamento</h3>
 
+                    @php
+                        $installmentsPaidTotal = $contract->paidInstallmentsTotal();
+                        $installmentsRemaining = $contract->remainingInstallmentsBalance();
+                        $installmentsUninvoiced = $contract->uninvoicedInstallmentsBalance();
+                    @endphp
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <p class="text-xs text-gray-500 uppercase tracking-wider">Valor pago</p>
+                            <p class="mt-1 text-lg font-semibold text-green-700">R$ {{ number_format($installmentsPaidTotal, 2, ',', '.') }}</p>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <p class="text-xs text-gray-500 uppercase tracking-wider">Valor a pagar</p>
+                            <p class="mt-1 text-lg font-semibold text-yellow-700">R$ {{ number_format($installmentsRemaining, 2, ',', '.') }}</p>
+                        </div>
+                        @if ($installmentsUninvoiced > 0)
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <p class="text-xs text-gray-500 uppercase tracking-wider">Saldo a lançar</p>
+                                <p class="mt-1 text-lg font-semibold text-gray-700">R$ {{ number_format($installmentsUninvoiced, 2, ',', '.') }}</p>
+                            </div>
+                        @endif
+                    </div>
+
                     <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 mb-4">
                         <thead>
@@ -325,16 +347,12 @@
                         <x-text-input id="occurrence_date" name="occurrence_date" type="date" class="mt-1 block w-full" value="{{ now()->format('Y-m-d') }}" required />
                     </div>
                     <div>
-                        <x-input-label for="deadline" value="Prazo (opcional)" />
-                        <x-text-input id="deadline" name="deadline" type="date" class="mt-1 block w-full" />
-                    </div>
-                    <div>
                         <x-input-label for="attachment" value="Anexo (opcional)" />
                         <input id="attachment" name="attachment" type="file" class="mt-1 block w-full text-sm">
                     </div>
                     <div class="sm:col-span-2">
-                        <x-input-label for="description" value="Descrição" />
-                        <textarea id="description" name="description" rows="2" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm" required></textarea>
+                        <x-input-label for="description" value="Descrição (opcional)" />
+                        <textarea id="description" name="description" rows="2" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm"></textarea>
                     </div>
                     <div class="sm:col-span-2 text-right">
                         <x-primary-button type="submit">Registrar ocorrência</x-primary-button>
@@ -350,9 +368,8 @@
                                 <div class="flex justify-between items-start">
                                     <div>
                                         <p class="text-sm font-medium text-gray-900">{{ $occurrence->type->name }} &mdash; {{ $occurrence->occurrence_date->format('d/m/Y') }}</p>
-                                        <p class="text-sm text-gray-600">{{ $occurrence->description }}</p>
-                                        @if ($occurrence->deadline)
-                                            <p class="text-xs text-gray-500">Prazo: {{ $occurrence->deadline->format('d/m/Y') }}</p>
+                                        @if ($occurrence->description)
+                                            <p class="text-sm text-gray-600">{{ $occurrence->description }}</p>
                                         @endif
                                         @if ($occurrence->attachment_path)
                                             <a href="{{ route('occurrences.attachment', [$contract, $occurrence]) }}" class="text-xs text-brand-600 hover:text-brand-800">Baixar anexo</a>
