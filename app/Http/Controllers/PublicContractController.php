@@ -296,13 +296,7 @@ class PublicContractController extends Controller
         $this->ensureBelongsToContract($vendor, $contract);
         abort_unless($installment->vendor_id === $vendor->id, 404);
 
-        $data = $request->validated();
-
-        if ($data['status'] === Installment::STATUS_PAGO && empty($data['paid_at'])) {
-            $data['paid_at'] = now()->toDateString();
-        }
-
-        $installment->update($data);
+        $installment->update($request->validated());
 
         return redirect()->route('public.show', ['token' => $token, 'tab' => 'fornecedores'])
             ->with('success', 'Parcela do fornecedor atualizada com sucesso.');
@@ -344,10 +338,6 @@ class PublicContractController extends Controller
 
         if (! empty($data['vendor_id'])) {
             $this->vendorForContract($data['vendor_id'], $contract);
-        }
-
-        if ($data['status'] === Installment::STATUS_PAGO && empty($data['paid_at'])) {
-            $data['paid_at'] = now()->toDateString();
         }
 
         $financialEntry->update($data);

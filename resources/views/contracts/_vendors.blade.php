@@ -50,6 +50,8 @@
                             {{ $vendor->document ?: 'sem documento' }} &middot; {{ $vendor->vendorServiceType->name }}
                             @if ($vendor->contract_value !== null)
                                 &middot; Valor do contrato: R$ {{ number_format($vendor->contract_value, 2, ',', '.') }}
+                                &middot; Pago: R$ {{ number_format($vendor->paidTotal(), 2, ',', '.') }}
+                                &middot; A pagar: R$ {{ number_format($vendor->remainingBalance(), 2, ',', '.') }}
                             @endif
                         </p>
                         @if ($vendor->updatedByLabel())
@@ -124,20 +126,23 @@
                                                 <td class="py-2 pr-3 {{ $installment->isOverdue() ? 'text-red-600 font-medium' : '' }}">{{ $installment->due_date->format('d/m/Y') }}</td>
                                                 <td class="py-2 pr-3">R$ {{ number_format($installment->amount, 2, ',', '.') }}</td>
                                                 <td class="py-2 pr-3">
-                                                    <form method="POST" action="{{ $installmentUpdateUrl($vendor, $installment) }}">
+                                                    <form method="POST" action="{{ $installmentUpdateUrl($vendor, $installment) }}" class="flex items-center gap-1">
                                                         @csrf
                                                         @method('PUT')
                                                         <input type="hidden" name="number" value="{{ $installment->number }}">
                                                         <input type="hidden" name="amount" value="{{ $installment->amount }}">
                                                         <input type="hidden" name="due_date" value="{{ $installment->due_date->format('Y-m-d') }}">
-                                                        <select name="status" class="border-gray-300 rounded-md shadow-sm text-xs" onchange="this.form.submit()">
+                                                        <select name="status" class="border-gray-300 rounded-md shadow-sm text-xs">
                                                             @foreach (Installment::statusOptions() as $value => $label)
                                                                 <option value="{{ $value }}" @selected($installment->status === $value)>{{ $label }}</option>
                                                             @endforeach
                                                         </select>
+                                                </td>
+                                                <td class="py-2 pr-3">
+                                                        <input type="date" name="paid_at" value="{{ optional($installment->paid_at)->format('Y-m-d') }}" class="border-gray-300 rounded-md shadow-sm text-xs">
+                                                        <button type="submit" class="text-brand-600 hover:text-brand-800 text-xs ml-1">Salvar</button>
                                                     </form>
                                                 </td>
-                                                <td class="py-2 pr-3">{{ optional($installment->paid_at)->format('d/m/Y') ?: '—' }}</td>
                                                 <td class="py-2 pr-3 text-right">
                                                     <form method="POST" action="{{ $installmentDestroyUrl($vendor, $installment) }}" onsubmit="return confirm('Inativar esta parcela?');">
                                                         @csrf

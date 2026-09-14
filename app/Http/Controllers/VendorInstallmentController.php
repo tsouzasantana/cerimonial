@@ -60,13 +60,7 @@ class VendorInstallmentController extends Controller
         abort_unless($vendor->contract_id === $contract->id, 404);
         abort_unless($installment->vendor_id === $vendor->id, 404);
 
-        $data = $request->validated();
-
-        if ($data['status'] === Installment::STATUS_PAGO && empty($data['paid_at'])) {
-            $data['paid_at'] = now()->toDateString();
-        }
-
-        $installment->update($data);
+        $installment->update($request->validated());
 
         return redirect()->route('contracts.show', ['contract' => $contract, 'tab' => 'fornecedores'])
             ->with('success', 'Parcela do fornecedor atualizada com sucesso.');

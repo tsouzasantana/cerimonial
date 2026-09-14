@@ -131,4 +131,39 @@ class Vendor extends Model
     {
         $this->forceFill(['payment_status' => $this->computePaymentStatus()])->save();
     }
+
+    public function paidTotal(): float
+    {
+        return (float) $this->installments()->where('status', Installment::STATUS_PAGO)->sum('amount');
+    }
+
+    /**
+     * How much of the contract value hasn't been paid yet. Null when no
+     * contract value was informed (nothing to compare against).
+     */
+    public function remainingBalance(): ?float
+    {
+        if ($this->contract_value === null) {
+            return null;
+        }
+
+        return max(0, (float) $this->contract_value - $this->paidTotal());
+    }
+
+    /**
+     * Part of the contract value that hasn't been broken into an
+     * installment yet (paid or not) — shown in the financial control tab
+     * so the total spend isn't understated while only some installments
+     * have been entered.
+     */
+    public function uninvoicedBalance(): float
+    {
+        if ($this->contract_value === null) {
+            return 0.0;
+        }
+
+        $itemizedTotal = (float) $this->installments()->sum('amount');
+
+        return max(0, (float) $this->contract_value - $itemizedTotal);
+    }
 }

@@ -15,6 +15,12 @@
         ? route('public.financial-entries.destroy', ['token' => $token, 'financialEntry' => $entry])
         : route('financial-entries.destroy', [$contract, $entry]);
 
+    $vendorInstallmentUpdateUrl = fn ($vendor, $installment) => $isPublic
+        ? route('public.vendors.installments.update', ['token' => $token, 'vendor' => $vendor, 'installment' => $installment])
+        : route('vendor-installments.update', [$contract, $vendor, $installment]);
+
+    $contractInstallmentUpdateUrl = fn ($installment) => route('installments.update', [$contract, $installment]);
+
     $companyName = config('cerimonial.company_name', 'Assessoria');
 
     $rows = $contract->financialEntries
@@ -32,6 +38,7 @@
             $vendors->flatMap(fn ($vendor) => $vendor->installments->map(fn ($installment) => [
                 'source' => 'vendor_installment',
                 'model' => $installment,
+                'vendor' => $vendor,
                 'description' => "Parcela nº {$installment->number}",
                 'origin' => $vendor->name,
                 'due_date' => $installment->due_date,
@@ -52,12 +59,31 @@
                 'paid_at' => $installment->paid_at,
             ])
         )
+        ->concat(
+            $vendors->filter(fn ($vendor) => $vendor->uninvoicedBalance() > 0)->map(fn ($vendor) => [
+                'source' => 'vendor_pending_balance',
+                'model' => null,
+                'description' => 'Saldo a lançar',
+                'origin' => $vendor->name,
+                'due_date' => null,
+                'amount' => $vendor->uninvoicedBalance(),
+                'status' => Installment::STATUS_PENDENTE,
+                'paid_at' => null,
+            ])
+        )
         ->sortBy(fn ($row) => $row['due_date']?->format('Y-m-d') ?? '9999-99-99')
         ->values();
 
     $total = $rows->sum('amount');
     $totalPago = $rows->where('status', Installment::STATUS_PAGO)->sum('amount');
     $totalPendente = $total - $totalPago;
+
+    $statusBadgeVariant = fn ($row) => match (true) {
+        $row['model'] !== null => $row['model']->statusBadgeVariant(),
+        $row['status'] === Installment::STATUS_PAGO => 'success',
+        $row['status'] === Installment::STATUS_ATRASADO => 'danger',
+        default => 'warning',
+    };
 @endphp
 
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -75,50 +101,70 @@
     </div>
 </div>
 
-<div class="overflow-x-auto mb-6">
-    <table class="min-w-full divide-y divide-gray-200 text-sm">
-        <thead>
-            <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <th class="py-2 pr-3">Descrição</th>
-                <th class="py-2 pr-3">Fornecedor / Origem</th>
-                <th class="py-2 pr-3">Vencimento</th>
-                <th class="py-2 pr-3">Valor</th>
-                <th class="py-2 pr-3">Status</th>
-                <th class="py-2 pr-3">Pago em</th>
-                <th class="py-2 pr-3"></th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-            @forelse ($rows as $row)
-                <tr>
-                    <td class="py-2 pr-3">{{ $row['description'] }}</td>
-                    <td class="py-2 pr-3">{{ $row['origin'] }}</td>
-                    <td class="py-2 pr-3">{{ $row['due_date']?->format('d/m/Y') ?? '—' }}</td>
-                    <td class="py-2 pr-3">R$ {{ number_format($row['amount'], 2, ',', '.') }}</td>
-                    <td class="py-2 pr-3">
-                        <x-status-badge :variant="$row['model']->statusBadgeVariant()">{{ Installment::statusOptions()[$row['status']] ?? $row['status'] }}</x-status-badge>
-                    </td>
-                    <td class="py-2 pr-3">{{ optional($row['paid_at'])->format('d/m/Y') ?: '—' }}</td>
-                    <td class="py-2 pr-3 text-right">
-                        @if ($row['source'] === 'entry')
-                            <button type="button" class="text-gray-600 hover:text-gray-900 text-xs" x-data x-on:click="$dispatch('open-modal', 'edit-financial-entry-{{ $row['model']->id }}')">Editar</button>
-                            <form method="POST" action="{{ $destroyUrl($row['model']) }}" onsubmit="return confirm('Inativar este lançamento?');" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-800 text-xs ml-2">Inativar</button>
-                            </form>
-                        @elseif ($row['source'] === 'vendor_installment')
-                            <span class="text-xs text-gray-400">Ver na aba Fornecedores</span>
-                        @else
-                            <span class="text-xs text-gray-400">Ver na aba Serviços e pagamentos</span>
-                        @endif
-                    </td>
+<div x-data="{ search: '' }" class="mb-6">
+    <div class="mb-3">
+        <x-text-input type="text" x-model="search" placeholder="Buscar em qualquer coluna..." class="w-full sm:w-80" />
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead>
+                <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th class="py-2 pr-3 cursor-pointer select-none hover:text-gray-700" data-sort-key="description">Descrição ⇅</th>
+                    <th class="py-2 pr-3 cursor-pointer select-none hover:text-gray-700" data-sort-key="origin">Fornecedor / Origem ⇅</th>
+                    <th class="py-2 pr-3 cursor-pointer select-none hover:text-gray-700" data-sort-key="due_date">Vencimento ⇅</th>
+                    <th class="py-2 pr-3 cursor-pointer select-none hover:text-gray-700" data-sort-key="amount">Valor ⇅</th>
+                    <th class="py-2 pr-3 cursor-pointer select-none hover:text-gray-700" data-sort-key="status">Status ⇅</th>
+                    <th class="py-2 pr-3 cursor-pointer select-none hover:text-gray-700" data-sort-key="paid_at">Pago em ⇅</th>
+                    <th class="py-2 pr-3"></th>
                 </tr>
-            @empty
-                <tr><td colspan="7" class="py-3 text-center text-gray-500">Nenhum lançamento financeiro.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody data-sortable>
+                @forelse ($rows as $row)
+                    @php
+                        $searchText = Str::lower(implode(' ', [
+                            $row['description'],
+                            $row['origin'],
+                            optional($row['due_date'])->format('d/m/Y'),
+                            number_format($row['amount'], 2, ',', '.'),
+                            Installment::statusOptions()[$row['status']] ?? $row['status'],
+                            optional($row['paid_at'])->format('d/m/Y'),
+                        ]));
+                    @endphp
+                    <tr data-search="{{ $searchText }}" x-show="!search || $el.dataset.search.includes(search.toLowerCase())">
+                        <td class="py-2 pr-3" data-sort-value="description" data-sort-raw="{{ Str::lower($row['description']) }}">{{ $row['description'] }}</td>
+                        <td class="py-2 pr-3" data-sort-value="origin" data-sort-raw="{{ Str::lower($row['origin']) }}">{{ $row['origin'] }}</td>
+                        <td class="py-2 pr-3" data-sort-value="due_date" data-sort-raw="{{ $row['due_date']?->format('Y-m-d') ?? '9999-99-99' }}">{{ $row['due_date']?->format('d/m/Y') ?? '—' }}</td>
+                        <td class="py-2 pr-3" data-sort-value="amount" data-sort-raw="{{ $row['amount'] }}">R$ {{ number_format($row['amount'], 2, ',', '.') }}</td>
+                        <td class="py-2 pr-3" data-sort-value="status" data-sort-raw="{{ Str::lower(Installment::statusOptions()[$row['status']] ?? $row['status']) }}">
+                            <x-status-badge :variant="$statusBadgeVariant($row)">{{ Installment::statusOptions()[$row['status']] ?? $row['status'] }}</x-status-badge>
+                        </td>
+                        <td class="py-2 pr-3" data-sort-value="paid_at" data-sort-raw="{{ $row['paid_at']?->format('Y-m-d') ?? '9999-99-99' }}">{{ optional($row['paid_at'])->format('d/m/Y') ?: '—' }}</td>
+                        <td class="py-2 pr-3 text-right whitespace-nowrap">
+                            @if ($row['source'] === 'entry')
+                                <button type="button" class="text-gray-600 hover:text-gray-900 text-xs" x-data x-on:click="$dispatch('open-modal', 'edit-financial-entry-{{ $row['model']->id }}')">Editar</button>
+                                <form method="POST" action="{{ $destroyUrl($row['model']) }}" onsubmit="return confirm('Inativar este lançamento?');" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-800 text-xs ml-2">Inativar</button>
+                                </form>
+                            @elseif ($row['source'] === 'vendor_installment')
+                                <button type="button" class="text-gray-600 hover:text-gray-900 text-xs" x-data x-on:click="$dispatch('open-modal', 'edit-vendor-installment-{{ $row['model']->id }}')">Editar</button>
+                            @elseif ($row['source'] === 'contract_installment' && ! $isPublic)
+                                <button type="button" class="text-gray-600 hover:text-gray-900 text-xs" x-data x-on:click="$dispatch('open-modal', 'edit-contract-installment-{{ $row['model']->id }}')">Editar</button>
+                            @elseif ($row['source'] === 'vendor_pending_balance')
+                                <span class="text-xs text-gray-400">Lance a parcela na aba Fornecedores</span>
+                            @else
+                                <span class="text-xs text-gray-400">Ver na aba Serviços e pagamentos</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="7" class="py-3 text-center text-gray-500">Nenhum lançamento financeiro.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 
 @foreach ($contract->financialEntries as $entry)
@@ -167,6 +213,10 @@
                 </select>
             </div>
             <div>
+                <x-input-label for="financial-entry-{{ $entry->id }}-paid_at" value="Pago em" />
+                <x-text-input id="financial-entry-{{ $entry->id }}-paid_at" name="paid_at" type="date" class="mt-1 block w-full" :value="optional($entry->paid_at)->format('Y-m-d')" />
+            </div>
+            <div>
                 <x-input-label for="financial-entry-{{ $entry->id }}-notes" value="Observações" />
                 <textarea id="financial-entry-{{ $entry->id }}-notes" name="notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">{{ $entry->notes }}</textarea>
             </div>
@@ -178,6 +228,83 @@
         </form>
     </x-modal>
 @endforeach
+
+@foreach ($vendors as $vendor)
+    @foreach ($vendor->installments as $installment)
+        <x-modal name="edit-vendor-installment-{{ $installment->id }}" maxWidth="md">
+            <form method="POST" action="{{ $vendorInstallmentUpdateUrl($vendor, $installment) }}" class="p-6 space-y-4">
+                @csrf
+                @method('PUT')
+                <h3 class="text-lg font-medium text-gray-900">Editar parcela do fornecedor</h3>
+                <p class="text-sm text-gray-600">{{ $vendor->name }} &mdash; Parcela nº {{ $installment->number }} &mdash; R$ {{ number_format($installment->amount, 2, ',', '.') }}</p>
+                <input type="hidden" name="number" value="{{ $installment->number }}">
+                <input type="hidden" name="amount" value="{{ $installment->amount }}">
+                <input type="hidden" name="due_date" value="{{ $installment->due_date->format('Y-m-d') }}">
+
+                <div>
+                    <x-input-label for="vendor-installment-{{ $installment->id }}-status" value="Status" />
+                    <select id="vendor-installment-{{ $installment->id }}-status" name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        @foreach (Installment::statusOptions() as $value => $label)
+                            <option value="{{ $value }}" @selected($installment->status === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <x-input-label for="vendor-installment-{{ $installment->id }}-paid_at" value="Pago em" />
+                    <x-text-input id="vendor-installment-{{ $installment->id }}-paid_at" name="paid_at" type="date" class="mt-1 block w-full" :value="optional($installment->paid_at)->format('Y-m-d')" />
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" class="text-sm text-gray-600 hover:text-gray-900" x-data x-on:click="$dispatch('close-modal', 'edit-vendor-installment-{{ $installment->id }}')">Cancelar</button>
+                    <x-primary-button type="submit">Salvar</x-primary-button>
+                </div>
+            </form>
+        </x-modal>
+    @endforeach
+@endforeach
+
+@unless ($isPublic)
+    @foreach ($contract->installments as $installment)
+        <x-modal name="edit-contract-installment-{{ $installment->id }}" maxWidth="md">
+            <form method="POST" action="{{ $contractInstallmentUpdateUrl($installment) }}" class="p-6 space-y-4">
+                @csrf
+                @method('PUT')
+                <h3 class="text-lg font-medium text-gray-900">Editar parcela do contrato</h3>
+                <p class="text-sm text-gray-600">Parcela nº {{ $installment->number }} &mdash; R$ {{ number_format($installment->amount, 2, ',', '.') }}</p>
+                <input type="hidden" name="number" value="{{ $installment->number }}">
+                <input type="hidden" name="amount" value="{{ $installment->amount }}">
+                <input type="hidden" name="due_date" value="{{ $installment->due_date->format('Y-m-d') }}">
+
+                <div>
+                    <x-input-label for="contract-installment-{{ $installment->id }}-status" value="Status" />
+                    <select id="contract-installment-{{ $installment->id }}-status" name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        @foreach (Installment::statusOptions() as $value => $label)
+                            <option value="{{ $value }}" @selected($installment->status === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <x-input-label for="contract-installment-{{ $installment->id }}-payment_method" value="Forma de pagamento" />
+                    <select id="contract-installment-{{ $installment->id }}-payment_method" name="payment_method" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        <option value="">—</option>
+                        @foreach (Installment::paymentMethodOptions() as $value => $label)
+                            <option value="{{ $value }}" @selected($installment->payment_method === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <x-input-label for="contract-installment-{{ $installment->id }}-paid_at" value="Pago em" />
+                    <x-text-input id="contract-installment-{{ $installment->id }}-paid_at" name="paid_at" type="date" class="mt-1 block w-full" :value="optional($installment->paid_at)->format('Y-m-d')" />
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" class="text-sm text-gray-600 hover:text-gray-900" x-data x-on:click="$dispatch('close-modal', 'edit-contract-installment-{{ $installment->id }}')">Cancelar</button>
+                    <x-primary-button type="submit">Salvar</x-primary-button>
+                </div>
+            </form>
+        </x-modal>
+    @endforeach
+@endunless
 
 <div class="border-t pt-4">
     <h4 class="text-sm font-medium text-gray-900 mb-3">Adicionar lançamento</h4>
@@ -220,6 +347,10 @@
                     <option value="{{ $value }}" @selected($value === Installment::STATUS_PENDENTE)>{{ $label }}</option>
                 @endforeach
             </select>
+        </div>
+        <div>
+            <x-input-label for="new-entry-paid_at" value="Pago em (opcional)" />
+            <x-text-input id="new-entry-paid_at" name="paid_at" type="date" class="mt-1 block w-full" />
         </div>
         <div class="sm:col-span-2">
             <x-input-label for="new-entry-notes" value="Observações" />

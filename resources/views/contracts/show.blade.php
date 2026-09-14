@@ -209,20 +209,23 @@
                                             <input type="hidden" name="number" value="{{ $installment->number }}">
                                             <input type="hidden" name="amount" value="{{ $installment->amount }}">
                                             <input type="hidden" name="due_date" value="{{ $installment->due_date->format('Y-m-d') }}">
-                                            <select name="status" class="border-gray-300 rounded-md shadow-sm text-xs" onchange="this.form.submit()">
+                                            <select name="status" class="border-gray-300 rounded-md shadow-sm text-xs">
                                                 @foreach ($installmentStatuses as $value => $label)
                                                     <option value="{{ $value }}" @selected($installment->status === $value)>{{ $label }}</option>
                                                 @endforeach
                                             </select>
                                     </td>
-                                    <td class="py-2 pr-3">{{ optional($installment->paid_at)->format('d/m/Y') ?: '—' }}</td>
                                     <td class="py-2 pr-3">
-                                            <select name="payment_method" class="border-gray-300 rounded-md shadow-sm text-xs" onchange="this.form.submit()">
+                                            <input type="date" name="paid_at" value="{{ optional($installment->paid_at)->format('Y-m-d') }}" class="border-gray-300 rounded-md shadow-sm text-xs">
+                                    </td>
+                                    <td class="py-2 pr-3">
+                                            <select name="payment_method" class="border-gray-300 rounded-md shadow-sm text-xs">
                                                 <option value="">—</option>
                                                 @foreach ($paymentMethods as $value => $label)
                                                     <option value="{{ $value }}" @selected($installment->payment_method === $value)>{{ $label }}</option>
                                                 @endforeach
                                             </select>
+                                            <button type="submit" class="text-brand-600 hover:text-brand-800 text-xs ml-1">Salvar</button>
                                         </form>
                                     </td>
                                     <td class="py-2 pr-3 text-right">

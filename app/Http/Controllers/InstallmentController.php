@@ -56,13 +56,7 @@ class InstallmentController extends Controller
     {
         $this->ensureBelongsToContract($installment, $contract);
 
-        $data = $request->validated();
-
-        if ($data['status'] === Installment::STATUS_PAGO && empty($data['paid_at'])) {
-            $data['paid_at'] = now()->toDateString();
-        }
-
-        $installment->update($data);
+        $installment->update($request->validated());
 
         return redirect()->route('contracts.show', $contract)
             ->with('success', 'Parcela atualizada com sucesso.');

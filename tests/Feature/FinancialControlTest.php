@@ -213,10 +213,10 @@ class FinancialControlTest extends TestCase
         ])->assertNotFound();
     }
 
-    public function test_marking_a_financial_entry_as_paid_without_a_date_fills_it_automatically(): void
+    public function test_marking_a_financial_entry_as_paid_without_a_date_does_not_fill_it_automatically(): void
     {
         $user = User::factory()->create();
-        $entry = FinancialEntry::factory()->create(['status' => Installment::STATUS_PENDENTE]);
+        $entry = FinancialEntry::factory()->create(['status' => Installment::STATUS_PENDENTE, 'paid_at' => null]);
 
         $this->actingAs($user)->put(route('financial-entries.update', [$entry->contract, $entry]), [
             'description' => $entry->description,
@@ -224,7 +224,22 @@ class FinancialControlTest extends TestCase
             'status' => Installment::STATUS_PAGO,
         ])->assertRedirect();
 
-        $this->assertNotNull($entry->fresh()->paid_at);
+        $this->assertNull($entry->fresh()->paid_at);
+    }
+
+    public function test_marking_a_financial_entry_as_paid_with_a_chosen_date_keeps_that_date(): void
+    {
+        $user = User::factory()->create();
+        $entry = FinancialEntry::factory()->create(['status' => Installment::STATUS_PENDENTE, 'paid_at' => null]);
+
+        $this->actingAs($user)->put(route('financial-entries.update', [$entry->contract, $entry]), [
+            'description' => $entry->description,
+            'amount' => $entry->amount,
+            'status' => Installment::STATUS_PAGO,
+            'paid_at' => '2026-01-10',
+        ])->assertRedirect();
+
+        $this->assertSame('2026-01-10', $entry->fresh()->paid_at->format('Y-m-d'));
     }
 
     public function test_financial_control_tab_shows_vendor_installments_manual_entries_and_contract_installments(): void
@@ -327,5 +342,131 @@ class FinancialControlTest extends TestCase
             'amount' => '10',
             'status' => Installment::STATUS_PENDENTE,
         ])->assertRedirect(route('login'));
+    }
+
+    public function test_marking_a_vendor_installment_as_paid_without_a_date_does_not_fill_it_automatically(): void
+    {
+        $user = User::factory()->create();
+        $vendor = Vendor::factory()->create();
+        $installment = VendorInstallment::factory()->create(['vendor_id' => $vendor->id, 'paid_at' => null]);
+
+        $this->actingAs($user)->put(route('vendor-installments.update', [$vendor->contract, $vendor, $installment]), [
+            'number' => $installment->number,
+            'amount' => $installment->amount,
+            'due_date' => $installment->due_date->format('Y-m-d'),
+            'status' => Installment::STATUS_PAGO,
+        ])->assertRedirect();
+
+        $this->assertNull($installment->fresh()->paid_at);
+    }
+
+    public function test_marking_a_vendor_installment_as_paid_with_a_chosen_date_keeps_that_date(): void
+    {
+        $user = User::factory()->create();
+        $vendor = Vendor::factory()->create();
+        $installment = VendorInstallment::factory()->create(['vendor_id' => $vendor->id, 'paid_at' => null]);
+
+        $this->actingAs($user)->put(route('vendor-installments.update', [$vendor->contract, $vendor, $installment]), [
+            'number' => $installment->number,
+            'amount' => $installment->amount,
+            'due_date' => $installment->due_date->format('Y-m-d'),
+            'status' => Installment::STATUS_PAGO,
+            'paid_at' => '2026-02-05',
+        ])->assertRedirect();
+
+        $this->assertSame('2026-02-05', $installment->fresh()->paid_at->format('Y-m-d'));
+    }
+
+    public function test_marking_a_contract_installment_as_paid_without_a_date_does_not_fill_it_automatically(): void
+    {
+        $user = User::factory()->create();
+        $contract = Contract::factory()->create();
+        $installment = Installment::factory()->create(['contract_id' => $contract->id, 'paid_at' => null]);
+
+        $this->actingAs($user)->put(route('installments.update', [$contract, $installment]), [
+            'number' => $installment->number,
+            'amount' => $installment->amount,
+            'due_date' => $installment->due_date->format('Y-m-d'),
+            'status' => Installment::STATUS_PAGO,
+        ])->assertRedirect();
+
+        $this->assertNull($installment->fresh()->paid_at);
+    }
+
+    public function test_vendor_paid_total_remaining_and_uninvoiced_balance_are_computed_from_installments(): void
+    {
+        $vendor = Vendor::factory()->create(['contract_value' => 1000]);
+        VendorInstallment::factory()->create(['vendor_id' => $vendor->id, 'amount' => 300, 'status' => Installment::STATUS_PAGO]);
+        VendorInstallment::factory()->create(['vendor_id' => $vendor->id, 'amount' => 200, 'status' => Installment::STATUS_PENDENTE]);
+
+        $vendor->refresh();
+
+        $this->assertSame(300.0, $vendor->paidTotal());
+        $this->assertSame(700.0, $vendor->remainingBalance());
+        $this->assertSame(500.0, $vendor->uninvoicedBalance());
+    }
+
+    public function test_vendor_header_shows_paid_and_remaining_amounts(): void
+    {
+        $user = User::factory()->create();
+        $vendor = Vendor::factory()->create(['contract_value' => 1000, 'name' => 'Decoração Encantada']);
+        VendorInstallment::factory()->create(['vendor_id' => $vendor->id, 'amount' => 400, 'status' => Installment::STATUS_PAGO]);
+
+        $response = $this->actingAs($user)->get(route('contracts.show', ['contract' => $vendor->contract, 'tab' => 'fornecedores']));
+
+        $response->assertOk();
+        $response->assertSee('Pago: R$ 400,00');
+        $response->assertSee('A pagar: R$ 600,00');
+    }
+
+    public function test_financial_tab_shows_pending_balance_row_for_uninvoiced_vendor_amount(): void
+    {
+        $user = User::factory()->create();
+        $vendor = Vendor::factory()->create(['contract_value' => 1000, 'name' => 'Fotografia Instantes']);
+        VendorInstallment::factory()->create(['vendor_id' => $vendor->id, 'amount' => 300]);
+
+        $response = $this->actingAs($user)->get(route('contracts.show', ['contract' => $vendor->contract, 'tab' => 'financeiro']));
+
+        $response->assertOk();
+        $response->assertSee('Saldo a lançar');
+        $response->assertSee('700,00');
+    }
+
+    public function test_financial_tab_hides_pending_balance_row_once_fully_itemized(): void
+    {
+        $user = User::factory()->create();
+        $vendor = Vendor::factory()->create(['contract_value' => 1000, 'name' => 'Buffet Total']);
+        VendorInstallment::factory()->create(['vendor_id' => $vendor->id, 'amount' => 1000]);
+
+        $response = $this->actingAs($user)->get(route('contracts.show', ['contract' => $vendor->contract, 'tab' => 'financeiro']));
+
+        $response->assertOk();
+        $response->assertDontSee('Saldo a lançar');
+    }
+
+    public function test_financial_tab_offers_edit_modals_for_vendor_and_contract_installments(): void
+    {
+        $user = User::factory()->create();
+        $vendor = Vendor::factory()->create();
+        $vendorInstallment = VendorInstallment::factory()->create(['vendor_id' => $vendor->id]);
+        $contractInstallment = Installment::factory()->create(['contract_id' => $vendor->contract_id, 'number' => 1]);
+
+        $response = $this->actingAs($user)->get(route('contracts.show', ['contract' => $vendor->contract, 'tab' => 'financeiro']));
+
+        $response->assertOk();
+        $response->assertSee("edit-vendor-installment-{$vendorInstallment->id}", false);
+        $response->assertSee("edit-contract-installment-{$contractInstallment->id}", false);
+    }
+
+    public function test_public_portal_financial_tab_does_not_offer_contract_installment_edit_modal(): void
+    {
+        $contract = $this->contractWithClientCpf();
+        $contractInstallment = Installment::factory()->create(['contract_id' => $contract->id, 'number' => 1]);
+        $this->post(route('public.verify', $contract->public_token), ['document' => $contract->client->document]);
+
+        $response = $this->get(route('public.show', ['token' => $contract->public_token, 'tab' => 'financeiro']));
+
+        $response->assertOk();
+        $response->assertDontSee("edit-contract-installment-{$contractInstallment->id}", false);
     }
 }

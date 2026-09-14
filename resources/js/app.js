@@ -122,6 +122,52 @@ window.confirmAndSubmit = function (select, message) {
     }
 };
 
+// Ordenação de tabelas ao clicar no cabeçalho da coluna (ex.: aba "Controle
+// financeiro"). Cada <th> marca sua chave com data-sort-key, e a <td>
+// correspondente na mesma coluna expõe o valor comparável em data-sort-raw.
+document.addEventListener('click', (event) => {
+    const header = event.target.closest('[data-sort-key]');
+    if (!header) return;
+
+    const table = header.closest('table');
+    const tbody = table?.querySelector('tbody[data-sortable]');
+    if (!tbody) return;
+
+    const key = header.dataset.sortKey;
+    const currentDir = header.dataset.sortDir === 'asc' ? 'asc' : header.dataset.sortDir === 'desc' ? 'desc' : null;
+    const nextDir = currentDir === 'asc' ? 'desc' : 'asc';
+
+    header.parentElement.querySelectorAll('[data-sort-key]').forEach((th) => {
+        if (th !== header) delete th.dataset.sortDir;
+    });
+    header.dataset.sortDir = nextDir;
+
+    const rows = Array.from(tbody.querySelectorAll(':scope > tr'));
+
+    const rawValue = (row) => {
+        const cell = row.querySelector(`[data-sort-value="${key}"]`);
+        return cell ? cell.dataset.sortRaw ?? '' : '';
+    };
+
+    rows.sort((a, b) => {
+        const rawA = rawValue(a);
+        const rawB = rawValue(b);
+        const numA = parseFloat(rawA);
+        const numB = parseFloat(rawB);
+
+        let comparison;
+        if (rawA !== '' && rawB !== '' && !Number.isNaN(numA) && !Number.isNaN(numB)) {
+            comparison = numA - numB;
+        } else {
+            comparison = rawA.localeCompare(rawB, 'pt-BR');
+        }
+
+        return nextDir === 'asc' ? comparison : -comparison;
+    });
+
+    rows.forEach((row) => tbody.appendChild(row));
+});
+
 // Preenchimento automático de endereço a partir do CEP (API ViaCEP).
 document.addEventListener('blur', (event) => {
     if (!event.target.matches('[data-cep-autofill]')) return;

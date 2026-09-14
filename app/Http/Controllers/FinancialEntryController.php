@@ -6,7 +6,6 @@ use App\Http\Controllers\Concerns\EnsuresContractOwnership;
 use App\Http\Requests\FinancialEntryRequest;
 use App\Models\Contract;
 use App\Models\FinancialEntry;
-use App\Models\Installment;
 use App\Models\Vendor;
 use Illuminate\Http\RedirectResponse;
 
@@ -30,10 +29,6 @@ class FinancialEntryController extends Controller
         $this->ensureBelongsToContract($financialEntry, $contract);
 
         $data = $this->withVendorOwnershipChecked($request->validated(), $contract);
-
-        if ($data['status'] === Installment::STATUS_PAGO && empty($data['paid_at'])) {
-            $data['paid_at'] = now()->toDateString();
-        }
 
         $financialEntry->update($data);
 
